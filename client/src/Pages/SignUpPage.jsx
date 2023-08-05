@@ -68,6 +68,7 @@ function SignupPage() {
         onChange={(e) => setName(e.target.value)}
         placeholder="Name"
         className="signup-input"
+        style={{ fontFamily: "Space Grotesk", fontSize: "16px" }} // Font ve boyut ayarları
       />
       <input
         type="text"
@@ -75,6 +76,7 @@ function SignupPage() {
         onChange={(e) => setUsername(e.target.value)}
         placeholder="Username"
         className="signup-input"
+        style={{ fontFamily: "Space Grotesk", fontSize: "16px" }} // Font ve boyut ayarları
       />
       <input
         type="email"
@@ -84,6 +86,7 @@ function SignupPage() {
         pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
         title="Please provide a valid email address"
         className="signup-input"
+        style={{ fontFamily: "Space Grotesk", fontSize: "16px" }} // Font ve boyut ayarları
       />
       <input
         type="password"
@@ -91,6 +94,7 @@ function SignupPage() {
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Password"
         className="signup-input"
+        style={{ fontFamily: "Space Grotesk", fontSize: "16px" }} // Font ve boyut ayarları
       />
       {error && <p>{error}</p>}
 

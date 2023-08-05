@@ -72,7 +72,6 @@ function LoginPage() {
 
   return (
     <div className="login-container">
-      <h2 className="login-title">Login</h2>
       <input
         type="text"
         value={username}
@@ -98,7 +97,7 @@ function LoginPage() {
       />
       {error && <p className="login-error">{error}</p>}
       <button onClick={handleLogin} className="login-button">
-        Log in
+        Login
       </button>
     </div>
   );

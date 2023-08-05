@@ -1,8 +1,8 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
+  font-family: "Space Grotesk";
+  font-size: 22px;
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
@@ -66,4 +66,249 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* styles.css */
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-input {
+  font-family: "Space Grotesk";
+  font-size: 16px;
+  border: none;
+  border-bottom: 2px solid #00ff80;
+  background: transparent;
+  outline: none;
+  color: black;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.login-error {
+  font-family: "Space Grotesk";
+  font-size: 14px;
+  color: #ff0000;
+}
+
+.login-button {
+  font-family: "Space Grotesk";
+  font-size: 16px;
+  background-color: #00ff80;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: #00e06b;
+}
+
+/* Navbar container */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: black;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.example {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-grow: 1;
+}
+
+.example input[type="text"] {
+  border-bottom: 1px solid grey;
+  color: #fff;
+  padding: 5px;
+  font-size: 14px;
+  flex-grow: 1;
+}
+
+.example button {
+  background-color: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.search-input {
+  width: 350px;
+}
+
+.button-container {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 150px;
+  background-color: #333;
+  border-radius: 5px;
+  display: none;
+}
+
+.button-container:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 8px 15px;
+  color: #fff;
+  text-decoration: none;
+  display: block;
+}
+
+.drop-btn {
+  background: none;
+  color: grey;
+}
+
+.tasks-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  border-style: none;
+  border-radius: 10px;
+  color: white;
+}
+
+.tasks-info .message-icon,
+.tasks-info .bolt-icon,
+.tasks-info .star-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tasks-info .message-icon {
+  background-color: orange;
+}
+
+.tasks-info .bolt-icon {
+  background-color: magenta;
+}
+
+.tasks-info .star-icon {
+  background-color: greenyellow;
+}
+
+.tasks-info .message-icon i {
+  font-size: 10px;
+  color: #fff;
+  background-color: orange;
+}
+
+/* Search bar */
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #222;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.search-container input[type="text"] {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 14px;
+}
+
+.search-container button {
+  background-color: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* New task button */
+.new-task-btn {
+  background-color: royalblue;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Drop-down menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 150px;
+  background-color: #333;
+  border-radius: 5px;
+  display: none;
+}
+
+.button-container:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 8px 15px;
+  color: #fff;
+  text-decoration: none;
+  display: block;
+}
+
+.tasks-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.tasks-container p {
+  font-size: 16px;
+}
+
+.title-p {
+  color: white;
+}
+
+.number-p {
+  color: darkgray;
+}
+
+.tasks-info {
+  display: flex;
+  align-items: center;
+  background-color: #f2f2f2;
+  padding: 10px;
+}
+
+.message-icon,
+.bolt-icon,
+.star-icon {
+  margin-right: 10px;
+}
+
+.todo,
+.in-progress,
+.completed {
+  background-color: #888;
 }
