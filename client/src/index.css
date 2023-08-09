@@ -358,59 +358,49 @@ header .icons span:last-child {
   margin-right: -10px;
 }
 
-.calendar {
-  padding: 20px;
-}
-
-.calendar ul {
+.css-4pax7l-MuiPickersLayout-root {
   display: flex;
-  list-style: none;
-  flex-wrap: wrap;
-  text-align: center;
+  justify-content: left;
+  font-family: "Space Grotesk";
+  box-shadow: 3px 2px 10px 5px #888888 !important;
+  max-width: 320px;
+  margin-top: 2rem;
 }
 
-.calendar .days {
-  margin-bottom: 20px;
+.css-1hbyad5-MuiTypography-root {
+  display: none !important;
 }
-.calendar ul li {
-  position: relative;
-  width: calc(100% / 7);
+.css-jhsfre-MuiGrid-root-MuiPickersToolbar-content {
+  width: 320px;
+  background-color: darkorange;
 }
-.calendar .days li {
-  z-index: 1;
-  cursor: pointer;
-  margin-top: 20px;
-}
-
-.days li.inactive {
-  color: #aaa;
+.css-3jvy96-MuiTypography-root-MuiDatePickerToolbar-title {
+  font-size: 2rem !important;
+  font-family: "Space Grotesk" !important;
 }
 
-.days li.active {
-  color: white;
+.css-dplwbx-MuiPickersCalendarHeader-label {
+  font-size: 0.8rem !important;
+  font-family: "Space Grotesk" !important;
 }
 
-.calendar .weeks {
-  font-size: 0.6rem;
+.css-1tkx1wf-MuiSvgIcon-root-MuiPickersCalendarHeader-switchViewIcon,
+.css-1vooibu-MuiSvgIcon-root {
+  font-size: 0.8rem !important;
 }
 
-.calendar .days li::before {
-  position: absolute;
-  content: " ";
-  height: 25px;
-  width: 25px;
-  top: 50%;
-  left: 50%;
-  z-index: -1;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
+.css-rhmlg1-MuiTypography-root-MuiDayCalendar-weekDayLabel,
+.css-qa7bje-MuiButtonBase-root-MuiPickersDay-root {
+  font-family: "Space Grotesk" !important;
+  font-size: 0.6rem !important;
 }
 
-.days li:hover::before {
-  background-color: royalblue;
+.css-1beqopj-MuiPickersYear-yearButton {
+  font-family: "Space Grotesk" !important;
+  font-size: 0.5rem !important;
 }
 
-.days li.active::before {
-  background: #9b59b6;
+.css-1e6y48t-MuiButtonBase-root-MuiButton-root {
+  font-family: "Space Grotesk" !important;
+  font-size: 0.6rem !important;
 }

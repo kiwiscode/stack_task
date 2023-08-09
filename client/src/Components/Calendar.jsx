@@ -1,91 +1,50 @@
-import { useRef, useState, useEffect } from "react";
+import { useState } from "react";
+import TextField from "@mui/material/TextField";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
+import Badge from "@mui/material/Badge";
+import { PickersDay } from "@mui/x-date-pickers/PickersDay";
+import CheckIcon from "@mui/icons-material/Check";
+import { Button } from "@mui/material";
 
-function Calendar() {
-  const today = new Date();
-  const yearNum = today.getFullYear();
-  let monthNum = today.getMonth() + 1; // string
-  const renderMonth = useRef(monthNum);
+const Calendar = () => {
+  const [value, setValue] = useState(new Date());
+  const [highlightedDays, setHighlightedDays] = useState([1, 2, 13]);
 
-  const month = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const [currMonth, setCurrMonth] = useState(monthNum - 1);
-
-  let monthStr;
-  function handleIncreaseCurrentMonth() {
-    renderMonth.current += 1;
-    monthStr = month[renderMonth.current - 1];
-    console.log(monthStr);
-    setCurrMonth(monthStr);
-    return monthStr;
-  }
-  console.log(currMonth);
-  function handleDecreaseCurrentMonth() {
-    renderMonth.current -= 1;
-    monthStr = month[renderMonth.current - 1];
-    setCurrMonth(monthStr);
-    return monthStr;
-  }
-
-  useEffect(() => {
-    handleDecreaseCurrentMonth();
-    handleIncreaseCurrentMonth();
-  }, []);
-
-  const liTags = [];
-  const lastDateOfMonth = new Date(yearNum, monthNum - 1, 0).getDate();
-  for (let i = 1; i < lastDateOfMonth + 1; i++) {
-    liTags.push(<li key={i}>{i}</li>);
-  }
-
+  const handleButtonClick = () => {
+    console.log(value);
+  };
   return (
-    <>
-      <div>
-        <div className="wrapper">
-          <header>
-            <p className="current-date">{`${currMonth} ${yearNum}`}</p>
-            <div className="icons">
-              <span
-                className="material-symbols-rounded"
-                onClick={handleDecreaseCurrentMonth}
-              >
-                chevron_left
-              </span>
-              <span
-                className="material-symbols-rounded"
-                onClick={handleIncreaseCurrentMonth}
-              >
-                chevron_right
-              </span>
-            </div>
-          </header>
-          <div className="calendar">
-            <ul className="weeks">
-              <li>Sun</li>
-              <li>Mon</li>
-              <li>Tue</li>
-              <li>Wed</li>
-              <li>Thu</li>
-              <li>Fri</li>
-              <li>Sat</li>
-            </ul>
-            <ul className="days">{liTags}</ul>
-          </div>
-        </div>
-      </div>
-    </>
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <StaticDatePicker
+        variant="static"
+        orientation="portrait"
+        value={value}
+        disableFuture={false}
+        onChange={(newValue) => setValue(newValue)}
+        renderInput={(params) => {
+          <TextField {...params} />;
+        }}
+        renderDay={(day, _value, DayComponentProps) => {
+          const isSelected =
+            !DayComponentProps.outsideCurrentMonth &&
+            highlightedDays.indexOf(day.getDate()) >= 0;
+
+          return (
+            <Badge
+              key={day.toString()}
+              overlap="circular"
+              badgeContent={isSelected ? <CheckIcon color="red" /> : undefined}
+            >
+              <PickersDay {...DayComponentProps} />
+            </Badge>
+          );
+        }}
+      />
+      <Button onClick={handleButtonClick}>Save</Button>
+    </LocalizationProvider>
   );
-}
+};
 
 export default Calendar;

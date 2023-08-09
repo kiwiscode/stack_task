@@ -1,15 +1,15 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { UserContext } from "../Context/UserContext";
 import { useContext, useState } from "react";
-import axios from "axios";
 import Calendar from "../Components/Calendar";
+import axios from "axios";
+
 // when working on local version
 const API_URL = "http://localhost:3000";
 
 // when working on deployment version ???
 function HomePage() {
   const today = new Date();
-  const yearNum = today.getFullYear();
   const dayNum = today.getDay(); // string
   const monthNum = today.getMonth() + 1; // string
   const date = today.getDate(); // number
@@ -104,12 +104,6 @@ function HomePage() {
       setTaskWindow("hide");
     }
   });
-
-  const liTags = [];
-  const lastDateOfMonth = new Date(yearNum, monthNum, 0).getDate();
-  for (let i = 1; i < lastDateOfMonth + 1; i++) {
-    liTags.push(<li key={i}>{i}</li>);
-  }
 
   return (
     <>
@@ -221,6 +215,7 @@ function HomePage() {
               </div>
               <input type="text" placeholder="New task" />
               <Calendar />
+
               <div onClick={closeTaskWindow}>&times;</div>
             </div>
           </div>
