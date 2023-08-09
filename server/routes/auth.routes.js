@@ -14,7 +14,7 @@ require("dotenv").config();
 
 router.post("/signup", (req, res, next) => {
   let { name, username, email, password } = req.body;
-  console.log(name, username, email);
+
   name = capitalize(name);
   if (name === "" || username === "" || email === "" || password === "") {
     res.status(500).json({ error: "All fields are mandatory." });
@@ -72,7 +72,6 @@ router.post("/signup", (req, res, next) => {
 
 router.post("/login", (req, res) => {
   const { username, email, password } = req.body;
-  console.log(username, email);
 
   if (username === "" || email === "" || password === "") {
     res.status(403).json({

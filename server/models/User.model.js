@@ -28,12 +28,8 @@ const userSchema = new Schema(
     },
 
     // verified: { type: Boolean, default: false },
-    list: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+    list: [{ type: Schema.Types.ObjectId }],
     active: {
-      type: Boolean,
-      default: false,
-    },
-    isAdmin: {
       type: Boolean,
       default: false,
     },

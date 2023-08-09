@@ -49,7 +49,6 @@ function LoginPage() {
         navigate("/");
       })
       .catch((error) => {
-        console.log(error);
         if (error.message === "Request failed with status code 400") {
           setError("Email hasn't been verified yet.Check your inbox.");
         }
