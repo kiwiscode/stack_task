@@ -26,4 +26,7 @@ app.use("/auth", authRoutes);
 const logoutRoutes = require("./routes/logout.routes");
 app.use("/logout", logoutRoutes);
 
+const taskRoutes = require("./routes/task.routes");
+app.use("/task", taskRoutes);
+
 module.exports = app;

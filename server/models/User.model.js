@@ -28,7 +28,7 @@ const userSchema = new Schema(
     },
 
     // verified: { type: Boolean, default: false },
-    list: [{ type: Schema.Types.ObjectId }],
+    list: [{}],
     active: {
       type: Boolean,
       default: false,

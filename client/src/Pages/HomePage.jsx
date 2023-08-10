@@ -104,6 +104,46 @@ function HomePage() {
       setTaskWindow("hide");
     }
   });
+  const [category, setCategory] = useState("");
+
+  const [task, setTask] = useState("");
+  const handleTask = (e) => {
+    setTask(e.target.value);
+  };
+
+  const handleTaskSubmit = () => {
+    const token = localStorage.getItem("token");
+    axios
+      .post(
+        `${API_URL}/task`,
+        {
+          category,
+          task,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log(response);
+        console.log("Task posted and saved to user todo-list array.");
+        setCategory("");
+        setTask("");
+      })
+      .catch((error) => {
+        console.log("Error occured while posting task ! ", error);
+      });
+  };
+
+  const handleCheckboxChange = (selectedCategory) => {
+    if (category === selectedCategory) {
+      setCategory("");
+    } else {
+      setCategory(selectedCategory);
+    }
+  };
 
   return (
     <>
@@ -193,30 +233,63 @@ function HomePage() {
 
             <div className={`task-window  ${taskWindow}`}>
               <div>
-                <label>
-                  <input type="checkbox" />
-                  Work
-                </label>
-                <br />
-                <label>
-                  <input type="checkbox" />
-                  Personal
-                </label>
-                <br />
-                <label>
-                  <input type="checkbox" />
-                  Family
-                </label>
-                <br />
-                <label>
-                  <input type="checkbox" />
-                  Pet
-                </label>
+                <div className="category-checkbox">
+                  <button onClick={handleTaskSubmit}>Save</button>
+
+                  <label>
+                    <input
+                      type="checkbox"
+                      value="work"
+                      checked={category === "work"}
+                      onChange={() => handleCheckboxChange("work")}
+                    />
+                    Work
+                  </label>
+                  <br />
+                  <label>
+                    <input
+                      type="checkbox"
+                      value="personal"
+                      checked={category === "personal"}
+                      onChange={() => handleCheckboxChange("personal")}
+                    />
+                    Personal
+                  </label>
+                  <br />
+                  <label>
+                    <input
+                      type="checkbox"
+                      value="family"
+                      checked={category === "family"}
+                      onChange={() => handleCheckboxChange("family")}
+                    />
+                    Family
+                  </label>
+                  <br />
+                  <label>
+                    <input
+                      type="checkbox"
+                      value="pet"
+                      checked={category === "pet"}
+                      onChange={() => handleCheckboxChange("pet")}
+                    />
+                    Pet
+                  </label>
+                </div>
               </div>
-              <input type="text" placeholder="New task" />
+              <input
+                type="text"
+                value={task}
+                placeholder="New task"
+                className="task-input"
+                id="task"
+                name="task"
+                onChange={handleTask}
+              />
               <Calendar />
 
               <div onClick={closeTaskWindow}>&times;</div>
+              {/* <button onClick={handleTaskSubmit}>Save</button> */}
             </div>
           </div>
         )}
