@@ -4,11 +4,12 @@ const authenticateToken = require("../middleware/jwtMiddleware");
 const User = require("../models/User.model");
 const mongoose = require("mongoose");
 router.post("/", authenticateToken, (req, res) => {
-  const { category, task } = req.body;
+  const { category, task, dateAndTime } = req.body;
   const userId = req.user.userId;
   console.log(userId);
   console.log("Category : ", category);
   console.log("Task : ", task);
+  console.log("Date and time : ", dateAndTime);
 
   User.findByIdAndUpdate(userId)
     .then((user) => {
@@ -19,6 +20,7 @@ router.post("/", authenticateToken, (req, res) => {
       const newTask = {
         category: category,
         task: task,
+        dateAndTime: dateAndTime,
       };
 
       user.list.push(newTask);

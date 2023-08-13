@@ -14,6 +14,9 @@ function HomePage() {
   const monthNum = today.getMonth() + 1; // string
   const date = today.getDate(); // number
   const [taskWindow, setTaskWindow] = useState("hide");
+  const [dateAndTime, setdateAndTime] = useState("");
+  const [category, setCategory] = useState("");
+  const [task, setTask] = useState("");
 
   const days = [
     "Sunday",
@@ -104,14 +107,16 @@ function HomePage() {
       setTaskWindow("hide");
     }
   });
-  const [category, setCategory] = useState("");
 
-  const [task, setTask] = useState("");
   const handleTask = (e) => {
     setTask(e.target.value);
   };
 
   const handleTaskSubmit = () => {
+    console.log(dateAndTime.getDate());
+    console.log(dateAndTime.getMonth() + 1);
+    console.log(dateAndTime.getFullYear());
+    console.log(dateAndTime);
     const token = localStorage.getItem("token");
     axios
       .post(
@@ -119,6 +124,11 @@ function HomePage() {
         {
           category,
           task,
+          dateAndTime: {
+            year: dateAndTime.getFullYear(),
+            day: dateAndTime.getDate(),
+            month: dateAndTime.getMonth() + 1,
+          },
         },
         {
           headers: {
@@ -145,9 +155,10 @@ function HomePage() {
     }
   };
 
+  console.log(dateAndTime);
   return (
     <>
-      <div>
+      <div className="main-container">
         {!userInfo.active && (
           <div>
             <h1>TODO APP</h1>
@@ -275,6 +286,8 @@ function HomePage() {
                     />
                     Pet
                   </label>
+
+                  <p>{dateAndTime.toString()}</p>
                 </div>
               </div>
               <input
@@ -286,10 +299,14 @@ function HomePage() {
                 name="task"
                 onChange={handleTask}
               />
-              <Calendar />
+
+              <Calendar
+                changeTimeAndDate={(currDateAndTimeFromChild) =>
+                  setdateAndTime(currDateAndTimeFromChild)
+                }
+              />
 
               <div onClick={closeTaskWindow}>&times;</div>
-              {/* <button onClick={handleTaskSubmit}>Save</button> */}
             </div>
           </div>
         )}
