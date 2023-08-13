@@ -407,9 +407,118 @@ header .icons span:last-child {
 }
 
 .main-container {
-  zoom: 85%;
+  zoom: 74%;
 }
 
 .css-4pax7l-MuiPickersLayout-root {
-  zoom: 80%;
+  zoom: 81%;
+}
+
+.category-checkbox {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.task-window input[type="text"] {
+  width: 100%;
+}
+
+.task-window button[type="submit"] {
+  background-color: #00ff80;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.category-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  line-height: 0px;
+}
+
+.task-window button[type="submit"]:hover {
+  background-color: #00e06b;
+}
+
+#cb1 {
+  accent-color: #ffff00;
+}
+
+#cb2 {
+  accent-color: #800080;
+}
+
+#cb3 {
+  accent-color: #1da1f2;
+}
+
+#cb4 {
+  accent-color: #32de84;
+}
+
+.task-submit {
+  width: 100%;
+}
+
+.task-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #00ff80;
+  background: transparent;
+  outline: none;
+  color: black;
+  padding: 10px;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.checkbox-container label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.time-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #00ff80;
+  background: transparent;
+  outline: none;
+  color: black;
+  padding: 10px;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.task-window h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.task-window button[type="submit"] {
+  background-color: #646cff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.task-window button[type="submit"]:hover {
+  background-color: #535bf2;
 }

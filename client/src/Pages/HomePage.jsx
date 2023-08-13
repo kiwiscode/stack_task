@@ -14,9 +14,10 @@ function HomePage() {
   const monthNum = today.getMonth() + 1; // string
   const date = today.getDate(); // number
   const [taskWindow, setTaskWindow] = useState("hide");
-  const [dateAndTime, setdateAndTime] = useState("");
+  const [calendarDate, setCalendarDate] = useState("");
   const [category, setCategory] = useState("");
   const [task, setTask] = useState("");
+  const [time, setTime] = useState("");
 
   const days = [
     "Sunday",
@@ -112,11 +113,11 @@ function HomePage() {
     setTask(e.target.value);
   };
 
+  const handleTime = (e) => {
+    setTime(e.target.value);
+  };
+
   const handleTaskSubmit = () => {
-    console.log(dateAndTime.getDate());
-    console.log(dateAndTime.getMonth() + 1);
-    console.log(dateAndTime.getFullYear());
-    console.log(dateAndTime);
     const token = localStorage.getItem("token");
     axios
       .post(
@@ -124,11 +125,12 @@ function HomePage() {
         {
           category,
           task,
-          dateAndTime: {
-            year: dateAndTime.getFullYear(),
-            day: dateAndTime.getDate(),
-            month: dateAndTime.getMonth() + 1,
+          calendarDate: {
+            year: calendarDate.getFullYear(),
+            day: calendarDate.getDate(),
+            month: calendarDate.getMonth() + 1,
           },
+          time,
         },
         {
           headers: {
@@ -155,7 +157,6 @@ function HomePage() {
     }
   };
 
-  console.log(dateAndTime);
   return (
     <>
       <div className="main-container">
@@ -243,12 +244,22 @@ function HomePage() {
             </div>
 
             <div className={`task-window  ${taskWindow}`}>
+              <div className="task-input-container">
+                <input
+                  type="text"
+                  value={task}
+                  placeholder="New task"
+                  className="task-input"
+                  id="task"
+                  name="task"
+                  onChange={handleTask}
+                />
+              </div>
               <div>
                 <div className="category-checkbox">
-                  <button onClick={handleTaskSubmit}>Save</button>
-
                   <label>
                     <input
+                      id="cb1"
                       type="checkbox"
                       value="work"
                       checked={category === "work"}
@@ -259,6 +270,7 @@ function HomePage() {
                   <br />
                   <label>
                     <input
+                      id="cb2"
                       type="checkbox"
                       value="personal"
                       checked={category === "personal"}
@@ -269,6 +281,7 @@ function HomePage() {
                   <br />
                   <label>
                     <input
+                      id="cb3"
                       type="checkbox"
                       value="family"
                       checked={category === "family"}
@@ -279,6 +292,7 @@ function HomePage() {
                   <br />
                   <label>
                     <input
+                      id="cb4"
                       type="checkbox"
                       value="pet"
                       checked={category === "pet"}
@@ -287,26 +301,32 @@ function HomePage() {
                     Pet
                   </label>
 
-                  <p>{dateAndTime.toString()}</p>
+                  <p>{calendarDate.toString()}</p>
                 </div>
               </div>
-              <input
-                type="text"
-                value={task}
-                placeholder="New task"
-                className="task-input"
-                id="task"
-                name="task"
-                onChange={handleTask}
-              />
 
               <Calendar
                 changeTimeAndDate={(currDateAndTimeFromChild) =>
-                  setdateAndTime(currDateAndTimeFromChild)
+                  setCalendarDate(currDateAndTimeFromChild)
                 }
               />
-
+              <input
+                type="text"
+                value={time}
+                placeholder="Enter the time (e.g. 3:30 PM, afternoon 3:30)"
+                className="time-input"
+                id="time"
+                name="time"
+                onChange={handleTime}
+              />
               <div onClick={closeTaskWindow}>&times;</div>
+              <button
+                className="task-submit"
+                type="submit"
+                onClick={handleTaskSubmit}
+              >
+                Save
+              </button>
             </div>
           </div>
         )}
