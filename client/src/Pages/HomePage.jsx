@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { UserContext } from "../Context/UserContext";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import Calendar from "../Components/Calendar";
 import axios from "axios";
 
@@ -18,7 +18,7 @@ function HomePage() {
   const [category, setCategory] = useState("");
   const [task, setTask] = useState("");
   const [time, setTime] = useState("");
-
+  const [taskList, setTaskList] = useState([]);
   const days = [
     "Sunday",
     "Monday",
@@ -72,7 +72,7 @@ function HomePage() {
 
   const navigate = useNavigate();
   const { userInfo, logout } = useContext(UserContext);
-
+  console.log(userInfo.list);
   const handleLogout = () => {
     const token = localStorage.getItem("token");
     axios
@@ -157,6 +157,23 @@ function HomePage() {
     }
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    axios
+      .get(`${API_URL}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        setTaskList(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching list:", error);
+      });
+  }, []);
+  console.log(taskList);
   return (
     <>
       <div className="main-container">
@@ -223,7 +240,7 @@ function HomePage() {
                   <i className="fa fa-envelope"></i>
                 </div>
                 <p className="title-p">To do</p>
-                <p className="number-p">{"50"} tasks</p>
+                <p className="number-p">{taskList.length} tasks</p>
               </div>
 
               <div className="tasks-info in-progress">
@@ -242,6 +259,26 @@ function HomePage() {
                 <p className="number-p">{"100"} tasks</p>
               </div>
             </div>
+            {taskWindow && (
+              <div className="my-tasks">
+                <div className="task-header">
+                  <div>My tasks</div>
+                  <div>Show completed</div>
+                </div>
+                <div className="task-list">
+                  {taskList.map((task) => (
+                    <div key={task.id} className="task">
+                      <div className="task-details">
+                        <div>{task.task}</div>
+                        {/* kategoriye göre renk değişecek !  */}
+                        <div>{task.category}</div>
+                        {/* kategoriye göre renk değişecek !  */}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className={`task-window  ${taskWindow}`}>
               <div className="task-input-container">
@@ -300,8 +337,6 @@ function HomePage() {
                     />
                     Pet
                   </label>
-
-                  <p>{calendarDate.toString()}</p>
                 </div>
               </div>
 

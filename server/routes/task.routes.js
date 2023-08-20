@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const authenticateToken = require("../middleware/jwtMiddleware");
 const User = require("../models/User.model");
-const mongoose = require("mongoose");
 router.post("/", authenticateToken, (req, res) => {
   const { category, task, calendarDate, time } = req.body;
   const userId = req.user.userId;

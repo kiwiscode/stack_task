@@ -522,3 +522,19 @@ header .icons span:last-child {
 .task-window button[type="submit"]:hover {
   background-color: #535bf2;
 }
+
+.my-tasks {
+  border-style: groove;
+  margin-top: 10px;
+}
+
+/* task list section */
+.task-header,
+.task-details {
+  display: flex;
+  justify-content: space-between;
+  line-height: 1.5rem;
+}
+.my-tasks div {
+  font-size: 16px;
+}

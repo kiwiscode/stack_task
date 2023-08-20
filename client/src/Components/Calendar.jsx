@@ -11,7 +11,7 @@ import { Button } from "@mui/material";
 const Calendar = (props) => {
   const today = new Date();
   const [highlightedDays, setHighlightedDays] = useState([1, 2, 13]);
-  const [calendar, setCalendar] = useState("hide");
+  const [show, setShow] = useState(false);
 
   const [value, setValue] = useState({
     year: today.getFullYear(),
@@ -19,14 +19,12 @@ const Calendar = (props) => {
     month: today.getMonth() + 1,
   });
 
-  const showCalendar = () => {
-    setCalendar("");
-  };
-
   return (
     <div>
-      <button onClick={showCalendar}>Pick a date</button>
-      <div className={`calendar ${calendar}`}>
+      <button onClick={() => setShow(!show)}>
+        {!show ? "Select Date" : "Cancel"}
+      </button>
+      <div className={show ? " " : "hide"}>
         <LocalizationProvider dateAdapter={AdapterDateFns} classNam>
           <StaticDatePicker
             variant="static"
@@ -56,7 +54,9 @@ const Calendar = (props) => {
             }}
           />
 
-          <Button onClick={() => props.changeTimeAndDate(value)}>Save</Button>
+          <Button onClick={() => props.changeTimeAndDate(value)}>
+            Save Date
+          </Button>
         </LocalizationProvider>
       </div>
     </div>
