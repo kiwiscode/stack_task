@@ -41,4 +41,47 @@ router.post("/", authenticateToken, (req, res) => {
     });
 });
 
+router.delete("/delete-all", authenticateToken, (req, res) => {
+  const userId = req.user.userId;
+
+  User.findByIdAndUpdate(userId, { $set: { list: [] } })
+    .then(() => {
+      res.json({
+        status: "DONE",
+        message: "TASKS DELETED",
+      });
+    })
+    .catch((error) => {
+      console.error("Error deleting tasks:", error);
+      res.status(500).json({
+        status: "FAILED",
+        message: "An error occurred while deleting tasks",
+      });
+    });
+});
+
+router.delete("/delete-task", authenticateToken, (req, res) => {
+  const userId = req.user.userId;
+  const taskToDelete = req.body.task;
+
+  User.findById(userId)
+    .then((user) => {
+      user.list = user.list.filter((task) => task.task !== taskToDelete);
+      return user.save();
+    })
+    .then(() => {
+      res.json({
+        status: "DONE",
+        message: "TASKS DELETED",
+      });
+    })
+    .catch((error) => {
+      console.error("Error deleting tasks:", error);
+      res.status(500).json({
+        status: "FAILED",
+        message: "An error occurred while deleting tasks",
+      });
+    });
+});
+
 module.exports = router;

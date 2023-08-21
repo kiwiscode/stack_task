@@ -203,6 +203,7 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
+  zoom: 130%;
 }
 .tasks-info .message-icon {
   background-color: orange;
@@ -216,10 +217,10 @@ button:focus-visible {
   background-color: greenyellow;
 }
 
-.tasks-info .message-icon i {
-  font-size: 10px;
-  color: #fff;
-  background-color: orange;
+.tasks-info .message-icon i,
+.tasks-info .bolt-icon i,
+.tasks-info .star-icon i {
+  font-size: 13px;
 }
 
 /* Search bar */
@@ -284,6 +285,7 @@ button:focus-visible {
   display: flex;
   justify-content: space-between;
   gap: 20px;
+  background-color: white;
 }
 
 .tasks-container p {
@@ -407,11 +409,11 @@ header .icons span:last-child {
 }
 
 .main-container {
-  zoom: 74%;
+  zoom: 80%;
 }
 
 .css-4pax7l-MuiPickersLayout-root {
-  zoom: 81%;
+  zoom: 71%;
 }
 
 .category-checkbox {
@@ -524,8 +526,9 @@ header .icons span:last-child {
 }
 
 .my-tasks {
-  border-style: groove;
   margin-top: 10px;
+  border: 1px solid #999;
+  padding: 10px;
 }
 
 /* task list section */
@@ -535,6 +538,16 @@ header .icons span:last-child {
   justify-content: space-between;
   line-height: 1.5rem;
 }
+
 .my-tasks div {
   font-size: 16px;
+}
+
+.add-to-completed {
+  cursor: pointer;
+}
+
+.delete-task-container {
+  margin-top: 5px;
+  cursor: pointer;
 }

@@ -42,7 +42,6 @@ function LoginPage() {
 
         localStorage.setItem("token", token);
         localStorage.setItem("userInfo", JSON.stringify(user));
-        localStorage.setItem("list", JSON.stringify(user.list));
         localStorage.setItem("active", user.active);
         updateUser(user);
         setError("");

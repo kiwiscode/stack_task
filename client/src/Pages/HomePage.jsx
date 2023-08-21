@@ -44,6 +44,10 @@ function HomePage() {
     "December",
   ];
 
+  const capitalize = function (str) {
+    return str[0].toUpperCase() + str.slice(1).toLowerCase();
+  };
+
   const getDayStr = () => {
     const lengthSet = dayNum;
     let dayStr = days[lengthSet];
@@ -71,8 +75,8 @@ function HomePage() {
   }
 
   const navigate = useNavigate();
-  const { userInfo, logout } = useContext(UserContext);
-  console.log(userInfo.list);
+  const { getToken, userInfo, logout } = useContext(UserContext);
+
   const handleLogout = () => {
     const token = localStorage.getItem("token");
     axios
@@ -82,11 +86,12 @@ function HomePage() {
         },
       })
       .then(() => {
-        userInfo.active = false;
         localStorage.removeItem("userInfo");
         localStorage.removeItem("token");
         localStorage.removeItem("cartItems");
         localStorage.removeItem("order");
+        localStorage.removeItem("list");
+        localStorage.removeItem("active");
         logout();
         navigate("/");
       })
@@ -141,11 +146,85 @@ function HomePage() {
       .then((response) => {
         console.log(response);
         console.log("Task posted and saved to user todo-list array.");
+        const newTask = {
+          category,
+          task,
+          calendarDate: {
+            year: calendarDate.getFullYear(),
+            day: calendarDate.getDate(),
+            month: calendarDate.getMonth() + 1,
+          },
+          time,
+        };
+
+        const updatedTaskList = [...taskList, newTask];
+        setTaskList(updatedTaskList);
         setCategory("");
         setTask("");
+
+        const updatedUserInfo = {
+          ...userInfo,
+          list: updatedTaskList,
+        };
+
+        localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
       })
       .catch((error) => {
         console.log("Error occured while posting task ! ", error);
+      });
+  };
+
+  const handleDeleteAll = () => {
+    axios
+      .delete(`${API_URL}/task/delete-all`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      })
+      .then((response) => {
+        setTaskList([]);
+
+        const updatedUserInfo = {
+          ...userInfo,
+          list: [],
+        };
+        localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const handleDeleteTask = (taskToDelete) => {
+    axios
+      .delete(`${API_URL}/task/delete-task`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+        data: {
+          task: taskToDelete,
+        },
+      })
+      .then(() => {
+        const updatedTaskList = taskList.filter(
+          (task) => task.task !== taskToDelete
+        );
+        setTaskList(updatedTaskList);
+
+        const updatedUserInfo = {
+          ...userInfo,
+          list: updatedTaskList,
+        };
+        localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+
+        console.log("Task deleted");
+      })
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
       });
   };
 
@@ -173,7 +252,7 @@ function HomePage() {
         console.error("Error fetching list:", error);
       });
   }, []);
-  console.log(taskList);
+
   return (
     <>
       <div className="main-container">
@@ -225,7 +304,7 @@ function HomePage() {
         )}
         {userInfo.active && (
           <div>
-            <div>
+            <div className="info-container">
               <p>
                 {getDayStr()},{getMonthStr()} {date}
               </p>
@@ -248,7 +327,7 @@ function HomePage() {
                   <i className="fa fa-bolt"></i>
                 </div>
                 <p className="title-p">In Progress</p>
-                <p className="number-p">{"4"} tasks</p>
+                <p className="number-p">{taskList.length} tasks</p>
               </div>
 
               <div className="tasks-info completed">
@@ -262,24 +341,72 @@ function HomePage() {
             {taskWindow && (
               <div className="my-tasks">
                 <div className="task-header">
-                  <div>My tasks</div>
-                  <div>Show completed</div>
+                  <p>My tasks</p>
+                  <p>Show completed</p>
                 </div>
                 <div className="task-list">
                   {taskList.map((task) => (
                     <div key={task.id} className="task">
+                      <hr />
                       <div className="task-details">
-                        <div>{task.task}</div>
-                        {/* kategoriye göre renk değişecek !  */}
-                        <div>{task.category}</div>
-                        {/* kategoriye göre renk değişecek !  */}
+                        <div>
+                          <i
+                            className="add-to-completed"
+                            onClick={() => handleAddTaskToCompleted()}
+                          >
+                            ☑️
+                          </i>
+                          {task.task}
+                        </div>
+
+                        <div className="delete-task-container">
+                          <i
+                            className="delete-task"
+                            // onClick={() => handleDeleteTask(task.task)}
+                          >
+                            ⓧ
+                          </i>
+                        </div>
+
+                        <div className="task-details-2">
+                          {task.category === "work" && (
+                            <div
+                              style={{
+                                backgroundColor: "#ffff00",
+                                color: "black",
+                              }}
+                            >
+                              {capitalize(task.category)}
+                            </div>
+                          )}
+
+                          {task.category === "personal" && (
+                            <div style={{ backgroundColor: "#800080" }}>
+                              {capitalize(task.category)}
+                            </div>
+                          )}
+                          {task.category === "family" && (
+                            <div style={{ backgroundColor: "#1da1f2" }}>
+                              {capitalize(task.category)}
+                            </div>
+                          )}
+                          {task.category === "pet" && (
+                            <div style={{ backgroundColor: "#32de84" }}>
+                              {capitalize(task.category)}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-
+            <div>
+              {taskList.length > 0 && (
+                <button onClick={() => handleDeleteAll()}>Clear</button>
+              )}
+            </div>
             <div className={`task-window  ${taskWindow}`}>
               <div className="task-input-container">
                 <input
