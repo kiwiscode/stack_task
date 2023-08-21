@@ -2,7 +2,7 @@
 @import url("https://cdn.syncfusion.com/ej2/material.css");
 
 :root {
-  line-height: 1.5;
+  /* line-height: 1.5; */
   font-weight: 400;
   font-family: "Space Grotesk";
   font-size: 22px;
@@ -37,7 +37,7 @@ body {
 
 h1 {
   font-size: 3.2em;
-  line-height: 1.1;
+  /* line-height: 1.1; */
 }
 
 button {
@@ -71,8 +71,6 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
-
-/* styles.css */
 
 .login-container {
   display: flex;
@@ -113,7 +111,6 @@ button:focus-visible {
   background-color: #00e06b;
 }
 
-/* Navbar container */
 .nav-bar {
   display: flex;
   align-items: center;
@@ -220,10 +217,9 @@ button:focus-visible {
 .tasks-info .message-icon i,
 .tasks-info .bolt-icon i,
 .tasks-info .star-icon i {
-  font-size: 13px;
+  font-size: 14px;
 }
 
-/* Search bar */
 .search-container {
   display: flex;
   align-items: center;
@@ -248,7 +244,6 @@ button:focus-visible {
   font-size: 16px;
 }
 
-/* New task button */
 .new-task-btn {
   background-color: royalblue;
   color: #fff;
@@ -259,7 +254,6 @@ button:focus-visible {
   font-size: 14px;
 }
 
-/* Drop-down menu */
 .dropdown-menu {
   position: absolute;
   top: 100%;
@@ -409,11 +403,11 @@ header .icons span:last-child {
 }
 
 .main-container {
-  zoom: 80%;
+  zoom: 77%;
 }
 
 .css-4pax7l-MuiPickersLayout-root {
-  zoom: 71%;
+  zoom: 72%;
 }
 
 .category-checkbox {
@@ -441,7 +435,7 @@ header .icons span:last-child {
   align-items: center;
   gap: 5px;
   cursor: pointer;
-  line-height: 0px;
+  /* line-height: 0px; */
 }
 
 .task-window button[type="submit"]:hover {
@@ -531,12 +525,11 @@ header .icons span:last-child {
   padding: 10px;
 }
 
-/* task list section */
 .task-header,
 .task-details {
   display: flex;
   justify-content: space-between;
-  line-height: 1.5rem;
+  /* line-height: 1.5rem; */
 }
 
 .my-tasks div {
@@ -550,4 +543,112 @@ header .icons span:last-child {
 .delete-task-container {
   margin-top: 5px;
   cursor: pointer;
+}
+
+.delete-task {
+  font-size: 0.9rem;
+  background-color: white;
+}
+
+.add-to-completed {
+  font-size: 0.9rem;
+  background-color: white;
+}
+
+.task-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.task-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.task-details:hover {
+  background-color: #e0e0e0;
+}
+
+.task-details .add-to-completed:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.delete-task-container:hover .delete-task {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.task-details-2 {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.category-label {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  text-align: center;
+}
+
+.work {
+  background-color: #ffff00;
+  color: black;
+}
+
+.personal {
+  background-color: #800080;
+}
+
+.family {
+  background-color: #1da1f2;
+}
+
+.pet {
+  background-color: #32de84;
+}
+
+.greet {
+  font-size: 24px;
+}
+
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.slide-up {
+  transform: translateY(-20px);
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+@keyframes slideUp {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease forwards;
 }

@@ -14,11 +14,13 @@ function HomePage() {
   const monthNum = today.getMonth() + 1; // string
   const date = today.getDate(); // number
   const [taskWindow, setTaskWindow] = useState("hide");
-  const [calendarDate, setCalendarDate] = useState("");
-  const [category, setCategory] = useState("");
   const [task, setTask] = useState("");
+  const [category, setCategory] = useState("");
+  const [calendarDate, setCalendarDate] = useState("");
   const [time, setTime] = useState("");
   const [taskList, setTaskList] = useState([]);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
   const days = [
     "Sunday",
     "Monday",
@@ -74,7 +76,6 @@ function HomePage() {
     }
   }
 
-  const navigate = useNavigate();
   const { getToken, userInfo, logout } = useContext(UserContext);
 
   const handleLogout = () => {
@@ -156,7 +157,9 @@ function HomePage() {
           },
           time,
         };
-
+        if (response.status === 200) {
+          setError("");
+        }
         const updatedTaskList = [...taskList, newTask];
         setTaskList(updatedTaskList);
         setCategory("");
@@ -168,6 +171,13 @@ function HomePage() {
         };
 
         localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+      })
+      .catch((error) => {
+        if (error.message === "Request failed with status code 403") {
+          setError(
+            "All fields are mandatory. Please provide category, task, date and time."
+          );
+        }
       })
       .catch((error) => {
         console.log("Error occured while posting task ! ", error);
@@ -197,35 +207,44 @@ function HomePage() {
   };
 
   const handleDeleteTask = (taskToDelete) => {
-    axios
-      .delete(`${API_URL}/task/delete-task`, {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
-        data: {
-          task: taskToDelete,
-        },
-      })
-      .then(() => {
-        const updatedTaskList = taskList.filter(
-          (task) => task.task !== taskToDelete
-        );
-        setTaskList(updatedTaskList);
+    const taskToDeleteIndex = taskList.findIndex(
+      (task) => task.task === taskToDelete
+    );
 
-        const updatedUserInfo = {
-          ...userInfo,
-          list: updatedTaskList,
-        };
-        localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+    if (taskToDeleteIndex !== -1) {
+      const updatedTaskList = [...taskList];
+      updatedTaskList[taskToDeleteIndex].isDeleting = true;
+      setTaskList(updatedTaskList);
 
-        console.log("Task deleted");
-      })
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+      axios
+        .delete(`${API_URL}/task/delete-task`, {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+          data: {
+            task: taskToDelete,
+          },
+        })
+        .then(() => {
+          setTimeout(() => {
+            const updatedTaskList = taskList.filter(
+              (task) => task.task !== taskToDelete
+            );
+            setTaskList(updatedTaskList);
+
+            const updatedUserInfo = {
+              ...userInfo,
+              list: updatedTaskList,
+            };
+            localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+
+            console.log("Task deleted");
+          }, 300);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
   };
 
   const handleCheckboxChange = (selectedCategory) => {
@@ -289,12 +308,12 @@ function HomePage() {
             <div className="button-container">
               <button className="drop-btn">⌄</button>
               <div className="dropdown-menu">
-                <a href="#" className="dropdown-item">
+                {/* <a href="#" className="dropdown-item">
                   Option 1
                 </a>
                 <a href="#" className="dropdown-item">
                   Option 2
-                </a>
+                </a> */}
                 <button className="logout-button" onClick={handleLogout}>
                   Logout
                 </button>
@@ -308,7 +327,7 @@ function HomePage() {
               <p>
                 {getDayStr()},{getMonthStr()} {date}
               </p>
-              <p>
+              <p className="greet">
                 {formatAMPM(today)},{userInfo.name}
               </p>
               <p>{"34"} tasks completed</p>
@@ -346,26 +365,21 @@ function HomePage() {
                 </div>
                 <div className="task-list">
                   {taskList.map((task) => (
-                    <div key={task.id} className="task">
+                    <div
+                      key={task.id}
+                      className={`task ${task.isDeleting ? "fade-out" : ""}`}
+                    >
                       <hr />
                       <div className="task-details">
                         <div>
-                          <i
-                            className="add-to-completed"
+                          <button
+                            className="task-button add-to-completed"
                             onClick={() => handleAddTaskToCompleted()}
                           >
-                            ☑️
-                          </i>
-                          {task.task}
-                        </div>
+                            <i className="fas fa-check"></i>
+                          </button>
 
-                        <div className="delete-task-container">
-                          <i
-                            className="delete-task"
-                            // onClick={() => handleDeleteTask(task.task)}
-                          >
-                            ⓧ
-                          </i>
+                          {task.task}
                         </div>
 
                         <div className="task-details-2">
@@ -375,26 +389,48 @@ function HomePage() {
                                 backgroundColor: "#ffff00",
                                 color: "black",
                               }}
+                              className="category-label work"
                             >
                               {capitalize(task.category)}
                             </div>
                           )}
 
                           {task.category === "personal" && (
-                            <div style={{ backgroundColor: "#800080" }}>
+                            <div
+                              style={{ backgroundColor: "#800080" }}
+                              className="category-label personal"
+                            >
                               {capitalize(task.category)}
                             </div>
                           )}
                           {task.category === "family" && (
-                            <div style={{ backgroundColor: "#1da1f2" }}>
+                            <div
+                              style={{ backgroundColor: "#1da1f2" }}
+                              className="category-label family"
+                            >
                               {capitalize(task.category)}
                             </div>
                           )}
                           {task.category === "pet" && (
-                            <div style={{ backgroundColor: "#32de84" }}>
+                            <div
+                              style={{ backgroundColor: "#32de84" }}
+                              className="category-label pet"
+                            >
                               {capitalize(task.category)}
                             </div>
                           )}
+                          <div
+                            className={`task-button delete-task ${
+                              task.isDeleting ? "slide-up" : ""
+                            }`}
+                          >
+                            <button
+                              className="task-button delete-task"
+                              onClick={() => handleDeleteTask(task.task)}
+                            >
+                              <i className="fas fa-trash-alt"></i>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -489,6 +525,7 @@ function HomePage() {
               >
                 Save
               </button>
+              {error}
             </div>
           </div>
         )}

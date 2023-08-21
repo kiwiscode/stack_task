@@ -54,7 +54,10 @@ const Calendar = (props) => {
             }}
           />
 
-          <Button onClick={() => props.changeTimeAndDate(value)}>
+          <Button
+            onClick={() => props.changeTimeAndDate(value)}
+            className={!show}
+          >
             Save Date
           </Button>
         </LocalizationProvider>

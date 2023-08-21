@@ -11,6 +11,15 @@ router.post("/", authenticateToken, (req, res) => {
   console.log("Date : ", calendarDate);
   console.log("Time : ", time);
 
+  if (category === "" || task === "" || calendarDate === "" || time === "") {
+    res.status(403).render("auth/login", {
+      errorMessage:
+        "All fields are mandatory. Please provide category, task, date and time.",
+    });
+
+    return;
+  }
+
   User.findByIdAndUpdate(userId)
     .then((user) => {
       if (!user) {
