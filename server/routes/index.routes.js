@@ -4,7 +4,7 @@ const authenticateToken = require("../middleware/jwtMiddleware");
 const User = require("../models/User.model");
 
 // GET home page
-router.get("/", authenticateToken, (req, res) => {
+router.get("/", authenticateToken, (req, res, next) => {
   const userId = req.user.userId;
 
   User.findById(userId)

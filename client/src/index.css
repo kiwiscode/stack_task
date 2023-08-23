@@ -580,11 +580,7 @@ header .icons span:last-child {
 .task-details .add-to-completed:hover {
   opacity: 1;
   transform: scale(1.2);
-}
-
-.delete-task-container:hover .delete-task {
-  opacity: 1;
-  transform: scale(1.2);
+  color: royalblue;
 }
 
 .task-details-2 {
@@ -651,4 +647,15 @@ header .icons span:last-child {
 
 .slide-up {
   animation: slideUp 0.3s ease forwards;
+}
+
+.delete-task i:hover {
+  opacity: 1;
+  color: crimson;
+  transform: scale(1.2);
+}
+
+.clear-all-tasks:hover {
+  color: white;
+  background-color: crimson;
 }

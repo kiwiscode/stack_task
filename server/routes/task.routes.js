@@ -3,13 +3,14 @@ const router = express.Router();
 const authenticateToken = require("../middleware/jwtMiddleware");
 const User = require("../models/User.model");
 router.post("/", authenticateToken, (req, res) => {
-  const { category, task, calendarDate, time } = req.body;
+  const { category, task, calendarDate, time, isCompleted } = req.body;
   const userId = req.user.userId;
   console.log(userId);
   console.log("Category : ", category);
   console.log("Task : ", task);
   console.log("Date : ", calendarDate);
   console.log("Time : ", time);
+  console.log("Is completed ? : ", isCompleted);
 
   if (category === "" || task === "" || calendarDate === "" || time === "") {
     res.status(403).render("auth/login", {
@@ -31,6 +32,7 @@ router.post("/", authenticateToken, (req, res) => {
         task: task,
         calendarDate: calendarDate,
         time: time,
+        isCompleted: isCompleted,
       };
 
       user.list.push(newTask);

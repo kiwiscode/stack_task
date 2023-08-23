@@ -18,6 +18,7 @@ function HomePage() {
   const [category, setCategory] = useState("");
   const [calendarDate, setCalendarDate] = useState("");
   const [time, setTime] = useState("");
+  const [isCompleted, setIsCompleted] = useState(false);
   const [taskList, setTaskList] = useState([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -137,6 +138,7 @@ function HomePage() {
             month: calendarDate.getMonth() + 1,
           },
           time,
+          isCompleted,
         },
         {
           headers: {
@@ -156,6 +158,7 @@ function HomePage() {
             month: calendarDate.getMonth() + 1,
           },
           time,
+          isCompleted,
         };
         if (response.status === 200) {
           setError("");
@@ -372,15 +375,17 @@ function HomePage() {
                       <hr />
                       <div className="task-details">
                         <div>
+                          <button className="task-button add-to-completed">
+                            <i className="fas fa-check front"></i>
+                          </button>
                           <button
-                            className="task-button add-to-completed"
+                            className="task-button add-to-completed-2 hide"
                             onClick={() => handleAddTaskToCompleted()}
                           >
-                            <i className="fas fa-check"></i>
+                            DONE
                           </button>
-
-                          {task.task}
                         </div>
+                        <div className="task">{task.task}</div>
 
                         <div className="task-details-2">
                           {task.category === "work" && (
@@ -440,7 +445,12 @@ function HomePage() {
             )}
             <div>
               {taskList.length > 0 && (
-                <button onClick={() => handleDeleteAll()}>Clear</button>
+                <button
+                  onClick={() => handleDeleteAll()}
+                  className="clear-all-tasks"
+                >
+                  Clear
+                </button>
               )}
             </div>
             <div className={`task-window  ${taskWindow}`}>
