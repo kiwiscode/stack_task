@@ -22,6 +22,9 @@ function HomePage() {
   const [taskList, setTaskList] = useState([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [clearButton, setClearButton] = useState("");
+  const [completedTask, setCompletedTask] = useState([]);
+
   const days = [
     "Sunday",
     "Monday",
@@ -104,10 +107,12 @@ function HomePage() {
 
   const showTaskWindow = () => {
     setTaskWindow("");
+    setClearButton("hide");
   };
 
   const closeTaskWindow = () => {
     setTaskWindow("hide");
+    setClearButton("");
   };
 
   window.addEventListener("keyup", (event) => {
@@ -202,6 +207,7 @@ function HomePage() {
           list: [],
         };
         localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+
         console.log(response);
       })
       .catch((error) => {
@@ -258,7 +264,7 @@ function HomePage() {
     }
   };
 
-  useEffect(() => {
+  const fetchCurrListData = () => {
     const token = localStorage.getItem("token");
 
     axios
@@ -268,13 +274,61 @@ function HomePage() {
         },
       })
       .then((response) => {
+        const updatedCompletedTasks = response.data.filter(
+          (task) => task.isCompleted
+        );
         setTaskList(response.data);
+
+        setCompletedTask(updatedCompletedTasks);
+
+        console.log(response.data);
       })
+
       .catch((error) => {
         console.error("Error fetching list:", error);
       });
+  };
+
+  useEffect(() => {
+    fetchCurrListData();
   }, []);
 
+  const handleTaskComplete = (taskToComplete) => {
+    const taskIndex = taskList.findIndex(
+      (task) => task.task === taskToComplete.task
+    );
+
+    taskToComplete.isCompleted = true;
+    const token = localStorage.getItem("token");
+    axios
+      .post(
+        `${API_URL}/task/task-completed`,
+        {
+          data: {
+            taskIndex: taskIndex,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log(response);
+        console.log(completedTask);
+        console.log(taskToComplete);
+        if (!completedTask.includes(taskToComplete)) {
+          setCompletedTask([...completedTask, taskToComplete]);
+        }
+        const newCompletedTasks = taskList.filter((task) => task.isCompleted);
+        setCompletedTask(newCompletedTasks);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  console.log(completedTask);
   return (
     <>
       <div className="main-container">
@@ -333,7 +387,8 @@ function HomePage() {
               <p className="greet">
                 {formatAMPM(today)},{userInfo.name}
               </p>
-              <p>{"34"} tasks completed</p>
+
+              <p>{completedTask.length} tasks completed</p>
             </div>
             <div className="tasks-container">
               <div className="tasks-info todo">
@@ -357,7 +412,7 @@ function HomePage() {
                   <i className="fa fa-star"></i>
                 </div>
                 <p className="title-p">Completed</p>
-                <p className="number-p">{"100"} tasks</p>
+                <p className="number-p">{completedTask.length} tasks</p>
               </div>
             </div>
             {taskWindow && (
@@ -370,20 +425,30 @@ function HomePage() {
                   {taskList.map((task) => (
                     <div
                       key={task.id}
-                      className={`task ${task.isDeleting ? "fade-out" : ""}`}
+                      className={`task ${task.isDeleting ? "fade-out" : ""} ${
+                        task.isCompleted ? "fade-out-completed" : ""
+                      }`}
                     >
                       <hr />
-                      <div className="task-details">
-                        <div>
-                          <button className="task-button add-to-completed">
-                            <i className="fas fa-check front"></i>
-                          </button>
-                          <button
-                            className="task-button add-to-completed-2 hide"
-                            onClick={() => handleAddTaskToCompleted()}
-                          >
-                            DONE
-                          </button>
+                      <div
+                        className={`task-details ${
+                          task.isCompleted ? "slide-up-completed" : ""
+                        }`}
+                      >
+                        <div className="flip-button">
+                          <div className="flip-button-inner">
+                            <div className={`flip-button-front`}>
+                              <button
+                                className={`task-button add-to-completed`}
+                                onClick={() => handleTaskComplete(task)}
+                              >
+                                <i className="fas fa-check front"></i>
+                              </button>
+                            </div>
+                            {/* <div className="flip-button-back hide">
+                              <button>DONE</button>
+                            </div> */}
+                          </div>
                         </div>
                         <div className="task">{task.task}</div>
 
@@ -447,7 +512,7 @@ function HomePage() {
               {taskList.length > 0 && (
                 <button
                   onClick={() => handleDeleteAll()}
-                  className="clear-all-tasks"
+                  className={`clear-all-tasks ${clearButton}`}
                 >
                   Clear
                 </button>

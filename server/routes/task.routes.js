@@ -95,4 +95,47 @@ router.delete("/delete-task", authenticateToken, (req, res) => {
     });
 });
 
+router.post("/task-completed", authenticateToken, (req, res, next) => {
+  const userId = req.user.userId;
+  const { taskIndex } = req.body.data;
+  console.log("User ID:", userId);
+  console.log("Task Index:", taskIndex);
+  User.findById(userId)
+    .then((user) => {
+      console.log("User found:", user);
+
+      if (!user) {
+        return res.status(404).json({
+          status: "FAILED",
+          message: "User not found",
+        });
+      }
+
+      if (taskIndex < 0 || taskIndex >= user.list.length) {
+        return res.status(400).json({
+          status: "FAILED",
+          message: "Invalid task index",
+        });
+      }
+
+      const update = { $set: {} };
+      update.$set[`list.${taskIndex}.isCompleted`] = true;
+
+      return User.updateOne({ _id: userId }, update);
+    })
+    .then(() => {
+      res.status(200).json({
+        status: "SUCCESS",
+        message: "Task completed successfully",
+      });
+    })
+    .catch((error) => {
+      console.error("Error updating task:", error);
+      res.status(500).json({
+        status: "FAILED",
+        message: "An error occurred while completing the task",
+      });
+    });
+});
+
 module.exports = router;

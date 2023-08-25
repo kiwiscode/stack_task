@@ -463,7 +463,7 @@ header .icons span:last-child {
 }
 
 .task-input {
-  width: 100%;
+  max-width: 97%;
   border: none;
   border-bottom: 2px solid #00ff80;
   background: transparent;
@@ -489,7 +489,7 @@ header .icons span:last-child {
 }
 
 .time-input {
-  width: 100%;
+  max-width: 97%;
   border: none;
   border-bottom: 2px solid #00ff80;
   background: transparent;
@@ -623,6 +623,24 @@ header .icons span:last-child {
   font-size: 24px;
 }
 
+.delete-task i:hover {
+  opacity: 1;
+  color: maroon;
+  transform: scale(1.2);
+}
+
+.clear-all-tasks {
+  background-color: firebrick;
+  color: white;
+  width: 100%;
+  margin-top: 10px;
+  border-style: none;
+}
+
+.clear-all-tasks:hover {
+  background-color: maroon;
+}
+
 .fade-out {
   opacity: 0;
   transition: opacity 0.3s;
@@ -649,13 +667,29 @@ header .icons span:last-child {
   animation: slideUp 0.3s ease forwards;
 }
 
-.delete-task i:hover {
-  opacity: 1;
-  color: crimson;
-  transform: scale(1.2);
+/* completed slide animation */
+.fade-out-completed {
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
-.clear-all-tasks:hover {
-  color: white;
-  background-color: crimson;
+.slide-up-completed {
+  transform: translateY(-20px);
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+@keyframes slideUpCompleted {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+.slide-up-completed {
+  animation: slideUpCompleted 0.3s ease forwards;
 }
