@@ -72,13 +72,15 @@ button:focus-visible {
   }
 }
 
-.login-container {
+.login-container,
+.sign-up-container {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.login-input {
+.login-input,
+.signup-input {
   font-family: "Space Grotesk";
   font-size: 16px;
   border: none;
@@ -90,13 +92,15 @@ button:focus-visible {
   margin-bottom: 20px;
 }
 
-.login-error {
+.login-error,
+.signup-error {
   font-family: "Space Grotesk";
   font-size: 14px;
   color: #ff0000;
 }
 
-.login-button {
+.login-button,
+.signup-button {
   font-family: "Space Grotesk";
   font-size: 16px;
   background-color: #00ff80;
@@ -107,7 +111,8 @@ button:focus-visible {
   transition: background-color 0.3s ease;
 }
 
-.login-button:hover {
+.login-button:hover,
+.signup-button:hover {
   background-color: #00e06b;
 }
 

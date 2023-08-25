@@ -54,8 +54,11 @@ router.post("/", authenticateToken, (req, res) => {
 
 router.delete("/delete-all", authenticateToken, (req, res) => {
   const userId = req.user.userId;
+  const taskList = req.body.taskList;
 
-  User.findByIdAndUpdate(userId, { $set: { list: [] } })
+  console.log("List item to remove:", taskList);
+
+  User.updateOne({}, { $pull: { list: { isCompleted: false } } })
     .then(() => {
       res.json({
         status: "DONE",
@@ -97,29 +100,37 @@ router.delete("/delete-task", authenticateToken, (req, res) => {
 
 router.post("/task-completed", authenticateToken, (req, res, next) => {
   const userId = req.user.userId;
-  const { taskIndex } = req.body.data;
-  console.log("User ID:", userId);
+  const { taskIndex, taskList } = req.body.data;
+
   console.log("Task Index:", taskIndex);
+  console.log("Current Task List:", taskList);
   User.findById(userId)
     .then((user) => {
-      console.log("User found:", user);
-
       if (!user) {
         return res.status(404).json({
           status: "FAILED",
           message: "User not found",
         });
       }
-
+      console.log("User List:", user.list);
       if (taskIndex < 0 || taskIndex >= user.list.length) {
+        console.log("hello world");
         return res.status(400).json({
           status: "FAILED",
           message: "Invalid task index",
         });
       }
 
+      const taskToUpdate = taskList[taskIndex];
+      const userTaskIndex = user.list.findIndex(
+        (userTask) => userTask.task === taskToUpdate.task
+      );
+
+      console.log("Is correct index ?:", userTaskIndex);
+      console.log("Is correct item ?:", user.list[userTaskIndex]);
+
       const update = { $set: {} };
-      update.$set[`list.${taskIndex}.isCompleted`] = true;
+      update.$set[`list.${userTaskIndex}.isCompleted`] = true;
 
       return User.updateOne({ _id: userId }, update);
     })

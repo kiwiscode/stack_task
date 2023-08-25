@@ -198,17 +198,15 @@ function HomePage() {
         headers: {
           Authorization: `Bearer ${getToken()}`,
         },
+        data: {
+          taskList: taskList,
+        },
       })
       .then((response) => {
         setTaskList([]);
 
-        const updatedUserInfo = {
-          ...userInfo,
-          list: [],
-        };
-        localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
-
         console.log(response);
+        fetchCurrListData();
       })
       .catch((error) => {
         console.log(error);
@@ -277,11 +275,25 @@ function HomePage() {
         const updatedCompletedTasks = response.data.filter(
           (task) => task.isCompleted
         );
-        setTaskList(response.data);
+
+        const taskNotCompleted = response.data.filter(
+          (task) => !task.isCompleted
+        );
+        setTaskList(taskNotCompleted);
 
         setCompletedTask(updatedCompletedTasks);
-
-        console.log(response.data);
+      })
+      .then(() => {
+        axios
+          .get(`${API_URL}/`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then((response) => {
+            console.log(response);
+            console.log(response.data);
+          });
       })
 
       .catch((error) => {
@@ -306,6 +318,7 @@ function HomePage() {
         {
           data: {
             taskIndex: taskIndex,
+            taskList: taskList,
           },
         },
         {
@@ -318,17 +331,21 @@ function HomePage() {
         console.log(response);
         console.log(completedTask);
         console.log(taskToComplete);
+        console.log(taskIndex);
         if (!completedTask.includes(taskToComplete)) {
           setCompletedTask([...completedTask, taskToComplete]);
         }
         const newCompletedTasks = taskList.filter((task) => task.isCompleted);
         setCompletedTask(newCompletedTasks);
+
+        fetchCurrListData();
       })
       .catch((error) => {
         console.log(error);
       });
   };
   console.log(completedTask);
+  console.log(taskList);
   return (
     <>
       <div className="main-container">

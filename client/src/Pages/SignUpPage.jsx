@@ -98,7 +98,9 @@ function SignupPage() {
       />
       {error && <p>{error}</p>}
 
-      <button onClick={handleSignup}>Signup</button>
+      <button onClick={handleSignup} className="signup-button">
+        Signup
+      </button>
     </div>
   );
 }

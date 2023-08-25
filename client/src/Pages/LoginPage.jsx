@@ -10,7 +10,7 @@ const API_URL = "http://localhost:3000";
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { updateUser } = useContext(UserContext);
+  const { updateUser, userInfo } = useContext(UserContext);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,9 +43,25 @@ function LoginPage() {
         localStorage.setItem("token", token);
         localStorage.setItem("userInfo", JSON.stringify(user));
         localStorage.setItem("active", user.active);
+        localStorage.setItem("list", JSON.stringify(user.list));
         updateUser(user);
         setError("");
         navigate("/");
+
+        axios
+          .get(`${API_URL}/`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then((response) => {
+            console.log(response);
+            console.log(response.data);
+          })
+
+          .catch((error) => {
+            console.error("Error fetching list:", error);
+          });
       })
       .catch((error) => {
         if (error.message === "Request failed with status code 400") {
