@@ -2,7 +2,6 @@
 @import url("https://cdn.syncfusion.com/ej2/material.css");
 
 :root {
-  /* line-height: 1.5; */
   font-weight: 400;
   font-family: "Space Grotesk";
   font-size: 22px;
@@ -37,7 +36,6 @@ body {
 
 h1 {
   font-size: 3.2em;
-  /* line-height: 1.1; */
 }
 
 button {
@@ -208,7 +206,7 @@ button:focus-visible {
   zoom: 130%;
 }
 .tasks-info .message-icon {
-  background-color: orange;
+  background-color: rgba(254, 186, 79);
 }
 
 .tasks-info .bolt-icon {
@@ -216,7 +214,7 @@ button:focus-visible {
 }
 
 .tasks-info .star-icon {
-  background-color: greenyellow;
+  background-color: lawngreen;
 }
 
 .tasks-info .message-icon i,
@@ -534,7 +532,6 @@ header .icons span:last-child {
 .task-details {
   display: flex;
   justify-content: space-between;
-  /* line-height: 1.5rem; */
 }
 
 .my-tasks div {
@@ -697,4 +694,13 @@ header .icons span:last-child {
 
 .slide-up-completed {
   animation: slideUpCompleted 0.3s ease forwards;
+}
+
+.task-header p {
+  color: #213547;
+}
+
+.show-completed,
+.show-todos {
+  cursor: pointer;
 }

@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { UserContext } from "../Context/UserContext";
 import { useContext, useState, useEffect } from "react";
 import Calendar from "../Components/Calendar";
+// import CompletedTasks from "../Pages/CompletedTasks";
 import axios from "axios";
 
 // when working on local version
@@ -24,7 +25,8 @@ function HomePage() {
   const navigate = useNavigate();
   const [clearButton, setClearButton] = useState("");
   const [completedTask, setCompletedTask] = useState([]);
-
+  const [showCompleted, setShowCompleted] = useState("hide");
+  const [showList, setShowList] = useState("");
   const days = [
     "Sunday",
     "Monday",
@@ -332,6 +334,7 @@ function HomePage() {
         console.log(completedTask);
         console.log(taskToComplete);
         console.log(taskIndex);
+
         if (!completedTask.includes(taskToComplete)) {
           setCompletedTask([...completedTask, taskToComplete]);
         }
@@ -346,6 +349,16 @@ function HomePage() {
   };
   console.log(completedTask);
   console.log(taskList);
+
+  const showCompletedTasks = () => {
+    setShowCompleted("");
+    setShowList("hide");
+  };
+
+  const showTodos = () => {
+    setShowCompleted("hide");
+    setShowList("");
+  };
   return (
     <>
       <div className="main-container">
@@ -435,10 +448,42 @@ function HomePage() {
             {taskWindow && (
               <div className="my-tasks">
                 <div className="task-header">
-                  <p>My tasks</p>
-                  <p>Show completed</p>
+                  <p className="show-todos" onClick={() => showTodos()}>
+                    My tasks
+                  </p>
+                  <p
+                    className="show-completed"
+                    onClick={() => showCompletedTasks()}
+                  >
+                    Show completed
+                  </p>
                 </div>
-                <div className="task-list">
+                <div>
+                  <div className={`show-completed task-list ${showCompleted}`}>
+                    {completedTask.map((task) => (
+                      <div key={task.id}>
+                        <hr />
+                        <div className="task">
+                          {task.category}
+                          <br />
+                          {task.task}
+                          <br />
+                          {task.calendarDate.day < 10
+                            ? "0" + task.calendarDate.day
+                            : task.calendarDate.day}
+                          .
+                          {task.calendarDate.month < 10
+                            ? "0" + task.calendarDate.month
+                            : task.calendarDate.month}
+                          .{task.calendarDate.year}
+                          <br />
+                          {task.time}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className={`task-list ${showList}`}>
                   {taskList.map((task) => (
                     <div
                       key={task.id}
@@ -467,7 +512,20 @@ function HomePage() {
                             </div> */}
                           </div>
                         </div>
-                        <div className="task">{task.task}</div>
+                        <div className="task">
+                          {task.task}
+                          <br />
+                          {task.calendarDate.day < 10
+                            ? "0" + task.calendarDate.day
+                            : task.calendarDate.day}
+                          .
+                          {task.calendarDate.month < 10
+                            ? "0" + task.calendarDate.month
+                            : task.calendarDate.month}
+                          .{task.calendarDate.year}
+                          <br />
+                          {task.time}
+                        </div>
 
                         <div className="task-details-2">
                           {task.category === "work" && (
