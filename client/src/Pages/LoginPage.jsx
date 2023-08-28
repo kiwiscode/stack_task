@@ -37,8 +37,6 @@ function LoginPage() {
       .post(`${API_URL}/auth/login`, { username, email, password })
       .then((response) => {
         const { token, user } = response.data;
-        console.log(user);
-        console.log(response.data);
 
         localStorage.setItem("token", token);
         localStorage.setItem("userInfo", JSON.stringify(user));
@@ -54,10 +52,7 @@ function LoginPage() {
               Authorization: `Bearer ${token}`,
             },
           })
-          .then((response) => {
-            console.log(response);
-            console.log(response.data);
-          })
+          .then(() => {})
 
           .catch((error) => {
             console.error("Error fetching list:", error);

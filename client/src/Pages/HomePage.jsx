@@ -27,6 +27,22 @@ function HomePage() {
   const [completedTask, setCompletedTask] = useState([]);
   const [showCompleted, setShowCompleted] = useState("hide");
   const [showList, setShowList] = useState("");
+  const [clearCompletedTasksButton, setclearCompletedTasksButton] =
+    useState("hide");
+
+  const [query, setQuery] = useState("");
+
+  const getFilteredItems = (query, items) => {
+    if (!query) {
+      return items;
+    }
+
+    return taskList.filter((task) => task.task.includes(query));
+  };
+
+  const filteredItems = getFilteredItems(query, taskList);
+  useState("hide");
+  useState("hide");
   const days = [
     "Sunday",
     "Monday",
@@ -110,6 +126,7 @@ function HomePage() {
   const showTaskWindow = () => {
     setTaskWindow("");
     setClearButton("hide");
+    setclearCompletedTasksButton("hide");
   };
 
   const closeTaskWindow = () => {
@@ -146,6 +163,7 @@ function HomePage() {
           },
           time,
           isCompleted,
+          taskList: taskList,
         },
         {
           headers: {
@@ -154,8 +172,6 @@ function HomePage() {
         }
       )
       .then((response) => {
-        console.log(response);
-        console.log("Task posted and saved to user todo-list array.");
         const newTask = {
           category,
           task,
@@ -167,6 +183,7 @@ function HomePage() {
           time,
           isCompleted,
         };
+
         if (response.status === 200) {
           setError("");
         }
@@ -174,13 +191,14 @@ function HomePage() {
         setTaskList(updatedTaskList);
         setCategory("");
         setTask("");
-
+        setTime("");
+        setCalendarDate("");
         const updatedUserInfo = {
           ...userInfo,
           list: updatedTaskList,
         };
-
         localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+        fetchCurrListData();
       })
       .catch((error) => {
         if (error.message === "Request failed with status code 403") {
@@ -188,9 +206,11 @@ function HomePage() {
             "All fields are mandatory. Please provide category, task, date and time."
           );
         }
-      })
-      .catch((error) => {
-        console.log("Error occured while posting task ! ", error);
+        if (error.message === "Request failed with status code 400") {
+          setError(
+            "Cannot add duplicate tasks. A task with the same name already exists."
+          );
+        }
       });
   };
 
@@ -204,10 +224,9 @@ function HomePage() {
           taskList: taskList,
         },
       })
-      .then((response) => {
+      .then(() => {
         setTaskList([]);
 
-        console.log(response);
         fetchCurrListData();
       })
       .catch((error) => {
@@ -246,8 +265,65 @@ function HomePage() {
               list: updatedTaskList,
             };
             localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+          }, 300);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  };
 
-            console.log("Task deleted");
+  const handleDeleteAllCompletedTasks = () => {
+    axios
+      .delete(`${API_URL}/task/delete-all-completed-tasks`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+        data: {
+          completedTask: completedTask,
+        },
+      })
+      .then(() => {
+        setCompletedTask([]);
+
+        fetchCurrListData();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const handleDeleteCompleteTask = (taskToDelete) => {
+    const taskToDeleteIndex = completedTask.findIndex(
+      (task) => task.task === taskToDelete
+    );
+
+    if (taskToDeleteIndex !== -1) {
+      const updatedTaskList = [...completedTask];
+      updatedTaskList[taskToDeleteIndex].isDeleting = true;
+      setCompletedTask(updatedTaskList);
+
+      axios
+        .delete(`${API_URL}/task/delete-completed-task`, {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+          data: {
+            task: taskToDelete,
+          },
+        })
+        .then(() => {
+          setTimeout(() => {
+            const updatedTaskList = completedTask.filter(
+              (task) => task.task !== taskToDelete
+            );
+            setCompletedTask(updatedTaskList);
+
+            const updatedUserInfo = {
+              ...userInfo,
+              list: updatedTaskList,
+            };
+            localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
           }, 300);
         })
         .catch((error) => {
@@ -285,19 +361,6 @@ function HomePage() {
 
         setCompletedTask(updatedCompletedTasks);
       })
-      .then(() => {
-        axios
-          .get(`${API_URL}/`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .then((response) => {
-            console.log(response);
-            console.log(response.data);
-          });
-      })
-
       .catch((error) => {
         console.error("Error fetching list:", error);
       });
@@ -308,19 +371,30 @@ function HomePage() {
   }, []);
 
   const handleTaskComplete = (taskToComplete) => {
-    const taskIndex = taskList.findIndex(
-      (task) => task.task === taskToComplete.task
-    );
-
     taskToComplete.isCompleted = true;
+
+    const toStrHours = today.getHours().toString();
+    const toStrMinutes = today.getMinutes().toString();
+
+    const completedTimeStr =
+      (toStrHours < 10 ? "0" + toStrHours : toStrHours) +
+      ":" +
+      (toStrMinutes < 10 ? "0" + toStrMinutes : toStrMinutes);
+
     const token = localStorage.getItem("token");
     axios
       .post(
         `${API_URL}/task/task-completed`,
         {
           data: {
-            taskIndex: taskIndex,
-            taskList: taskList,
+            taskToComplete: taskToComplete,
+            completedFullDate: {
+              completedDay: getDayStr(),
+              completedMonth: getMonthStr(),
+              completedYear: today.getFullYear(),
+              completedDate: date,
+              completedTime: completedTimeStr,
+            },
           },
         },
         {
@@ -329,12 +403,7 @@ function HomePage() {
           },
         }
       )
-      .then((response) => {
-        console.log(response);
-        console.log(completedTask);
-        console.log(taskToComplete);
-        console.log(taskIndex);
-
+      .then(() => {
         if (!completedTask.includes(taskToComplete)) {
           setCompletedTask([...completedTask, taskToComplete]);
         }
@@ -347,18 +416,21 @@ function HomePage() {
         console.log(error);
       });
   };
-  console.log(completedTask);
-  console.log(taskList);
 
   const showCompletedTasks = () => {
     setShowCompleted("");
+    setclearCompletedTasksButton("");
     setShowList("hide");
+    setClearButton("hide");
   };
 
   const showTodos = () => {
     setShowCompleted("hide");
+    setclearCompletedTasksButton("hide");
     setShowList("");
+    setClearButton("");
   };
+
   return (
     <>
       <div className="main-container">
@@ -382,6 +454,7 @@ function HomePage() {
                   type="text"
                   placeholder="Search a task here"
                   name="search"
+                  onChange={(e) => setQuery(e.target.value)}
                   className="search-input"
                 />
                 <button>
@@ -395,12 +468,6 @@ function HomePage() {
             <div className="button-container">
               <button className="drop-btn">⌄</button>
               <div className="dropdown-menu">
-                {/* <a href="#" className="dropdown-item">
-                  Option 1
-                </a>
-                <a href="#" className="dropdown-item">
-                  Option 2
-                </a> */}
                 <button className="logout-button" onClick={handleLogout}>
                   Logout
                 </button>
@@ -463,28 +530,99 @@ function HomePage() {
                     {completedTask.map((task) => (
                       <div key={task.id}>
                         <hr />
-                        <div className="task">
-                          {task.category}
-                          <br />
-                          {task.task}
-                          <br />
-                          {task.calendarDate.day < 10
-                            ? "0" + task.calendarDate.day
-                            : task.calendarDate.day}
-                          .
-                          {task.calendarDate.month < 10
-                            ? "0" + task.calendarDate.month
-                            : task.calendarDate.month}
-                          .{task.calendarDate.year}
-                          <br />
-                          {task.time}
+                        <div className={`task-details task-details-completed`}>
+                          <button
+                            className={`task-button add-to-completed completed`}
+                          >
+                            <i>✅</i>
+                          </button>
+
+                          <div className="task completed-task">
+                            {task.task}
+                            <div className="details">
+                              {/* <p>
+                                Marked as completed on:{completedDay},
+                                {completedDate}.{completedMonth} {completedYear}
+                                - {completedTime}
+                              </p> */}
+
+                              <p className="deadline-message">
+                                The planned date was set for:
+                                {task.calendarDate.month < 10
+                                  ? "0" + task.calendarDate.month
+                                  : task.calendarDate.month}
+                                .
+                                {task.calendarDate.day < 10
+                                  ? "0" + task.calendarDate.day
+                                  : task.calendarDate.day}
+                                .{task.calendarDate.year} - {task.time}
+                              </p>
+                              <p>
+                                If you completed this before the deadline, well
+                                done!
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="task-details-2">
+                            {task.category === "work" && (
+                              <div
+                                style={{
+                                  backgroundColor: "#ffff00",
+                                  color: "black",
+                                }}
+                                className="category-label work"
+                              >
+                                {capitalize(task.category)}
+                              </div>
+                            )}
+
+                            {task.category === "personal" && (
+                              <div
+                                style={{ backgroundColor: "#800080" }}
+                                className="category-label personal"
+                              >
+                                {capitalize(task.category)}
+                              </div>
+                            )}
+                            {task.category === "family" && (
+                              <div
+                                style={{ backgroundColor: "#1da1f2" }}
+                                className="category-label family"
+                              >
+                                {capitalize(task.category)}
+                              </div>
+                            )}
+                            {task.category === "pet" && (
+                              <div
+                                style={{ backgroundColor: "#32de84" }}
+                                className="category-label pet"
+                              >
+                                {capitalize(task.category)}
+                              </div>
+                            )}
+                            <div
+                              className={`task-button delete-task ${
+                                task.isDeleting ? "slide-up" : ""
+                              }`}
+                            >
+                              <button
+                                className="task-button delete-task"
+                                onClick={() =>
+                                  handleDeleteCompleteTask(task.task)
+                                }
+                              >
+                                <i className="fas fa-trash-alt"></i>
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
                 <div className={`task-list ${showList}`}>
-                  {taskList.map((task) => (
+                  {filteredItems.map((task) => (
                     <div
                       key={task.id}
                       className={`task ${task.isDeleting ? "fade-out" : ""} ${
@@ -507,9 +645,6 @@ function HomePage() {
                                 <i className="fas fa-check front"></i>
                               </button>
                             </div>
-                            {/* <div className="flip-button-back hide">
-                              <button>DONE</button>
-                            </div> */}
                           </div>
                         </div>
                         <div className="task">
@@ -593,7 +728,20 @@ function HomePage() {
                 </button>
               )}
             </div>
+            <div>
+              {completedTask.length > 0 && (
+                <button
+                  onClick={() => handleDeleteAllCompletedTasks()}
+                  className={`clear-all-tasks ${clearCompletedTasksButton}`}
+                >
+                  Clear Completed
+                </button>
+              )}
+            </div>
             <div className={`task-window  ${taskWindow}`}>
+              <div onClick={closeTaskWindow} className="close-task-window">
+                <button className="close-button">&times;</button>
+              </div>
               <div className="task-input-container">
                 <input
                   type="text"
@@ -667,7 +815,7 @@ function HomePage() {
                 name="time"
                 onChange={handleTime}
               />
-              <div onClick={closeTaskWindow}>&times;</div>
+
               <button
                 className="task-submit"
                 type="submit"
