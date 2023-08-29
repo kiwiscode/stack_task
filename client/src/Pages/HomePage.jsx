@@ -2,7 +2,6 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { UserContext } from "../Context/UserContext";
 import { useContext, useState, useEffect } from "react";
 import Calendar from "../Components/Calendar";
-// import CompletedTasks from "../Pages/CompletedTasks";
 import axios from "axios";
 
 // when working on local version
@@ -20,6 +19,7 @@ function HomePage() {
   const [calendarDate, setCalendarDate] = useState("");
   const [time, setTime] = useState("");
   const [isCompleted, setIsCompleted] = useState(false);
+  const [completedFullDate, setCompletedFullDate] = useState({});
   const [taskList, setTaskList] = useState([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -127,6 +127,7 @@ function HomePage() {
     setTaskWindow("");
     setClearButton("hide");
     setclearCompletedTasksButton("hide");
+    setError("");
   };
 
   const closeTaskWindow = () => {
@@ -149,6 +150,19 @@ function HomePage() {
   };
 
   const handleTaskSubmit = () => {
+    const getSubmitDayStr = () => {
+      const lengthSet = calendarDate.getDay();
+      let dayStr = days[lengthSet];
+      return dayStr;
+    };
+
+    const getSubmitMonthStr = () => {
+      const lengthSet = calendarDate.getMonth();
+      const monthStr = month[lengthSet];
+
+      return monthStr;
+    };
+
     const token = localStorage.getItem("token");
     axios
       .post(
@@ -158,11 +172,15 @@ function HomePage() {
           task,
           calendarDate: {
             year: calendarDate.getFullYear(),
-            day: calendarDate.getDate(),
-            month: calendarDate.getMonth() + 1,
+            day: getSubmitDayStr(calendarDate.getDate()),
+            month: getSubmitMonthStr(calendarDate.getMonth()),
+            // day: calendarDate.getDate(),
+            // month: calendarDate.getMonth() + 1,
+            dateNum: calendarDate.getDate(),
           },
           time,
           isCompleted,
+          completedFullDate,
           taskList: taskList,
         },
         {
@@ -177,8 +195,11 @@ function HomePage() {
           task,
           calendarDate: {
             year: calendarDate.getFullYear(),
-            day: calendarDate.getDate(),
-            month: calendarDate.getMonth() + 1,
+            day: getSubmitDayStr(calendarDate.getDate()),
+            month: getSubmitMonthStr(calendarDate.getMonth()),
+            // day: calendarDate.getDate(),
+            // month: calendarDate.getMonth() + 1,
+            dateNum: calendarDate.getDate(),
           },
           time,
           isCompleted,
@@ -187,6 +208,7 @@ function HomePage() {
         if (response.status === 200) {
           setError("");
         }
+
         const updatedTaskList = [...taskList, newTask];
         setTaskList(updatedTaskList);
         setCategory("");
@@ -206,6 +228,13 @@ function HomePage() {
             "All fields are mandatory. Please provide category, task, date and time."
           );
         }
+
+        if (error.message === "Request failed with status code 500") {
+          setError(
+            "All fields are mandatory. Please provide category, task, date and time."
+          );
+        }
+
         if (error.message === "Request failed with status code 400") {
           setError(
             "Cannot add duplicate tasks. A task with the same name already exists."
@@ -540,22 +569,26 @@ function HomePage() {
                           <div className="task completed-task">
                             {task.task}
                             <div className="details">
-                              {/* <p>
-                                Marked as completed on:{completedDay},
-                                {completedDate}.{completedMonth} {completedYear}
-                                - {completedTime}
-                              </p> */}
+                              <p>
+                                Marked as completed on :{" "}
+                                {task.completedFullDate[0].completedDay},
+                                {task.completedFullDate[0].completedMonth}{" "}
+                                {task.completedFullDate[0].completedDate}{" "}
+                                {task.completedFullDate[0].completedYear} -{" "}
+                                {task.completedFullDate[0].completedTime}
+                              </p>
 
                               <p className="deadline-message">
-                                The planned date was set for:
-                                {task.calendarDate.month < 10
-                                  ? "0" + task.calendarDate.month
-                                  : task.calendarDate.month}
-                                .
+                                The planned date was set for :{" "}
                                 {task.calendarDate.day < 10
                                   ? "0" + task.calendarDate.day
                                   : task.calendarDate.day}
-                                .{task.calendarDate.year} - {task.time}
+                                ,
+                                {task.calendarDate.month < 10
+                                  ? "0" + task.calendarDate.month
+                                  : task.calendarDate.month}
+                                {""} {task.calendarDate.dateNum}{" "}
+                                {task.calendarDate.year} - {task.time}
                               </p>
                               <p>
                                 If you completed this before the deadline, well
@@ -652,12 +685,11 @@ function HomePage() {
                           <br />
                           {task.calendarDate.day < 10
                             ? "0" + task.calendarDate.day
-                            : task.calendarDate.day}
-                          .
+                            : task.calendarDate.day}{" "}
                           {task.calendarDate.month < 10
                             ? "0" + task.calendarDate.month
-                            : task.calendarDate.month}
-                          .{task.calendarDate.year}
+                            : task.calendarDate.month}{" "}
+                          {task.calendarDate.dateNum}, {task.calendarDate.year}
                           <br />
                           {task.time}
                         </div>
@@ -823,7 +855,7 @@ function HomePage() {
               >
                 Save
               </button>
-              {error}
+              <div>{error}</div>
             </div>
           </div>
         )}

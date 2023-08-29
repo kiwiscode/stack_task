@@ -5,8 +5,9 @@ const User = require("../models/User.model");
 const capitalize = require("../helpers/capitalize");
 
 router.post("/", authenticateToken, (req, res) => {
-  const { category, calendarDate, time, isCompleted, taskList } = req.body;
-
+  const { category, calendarDate, time, isCompleted, completedFullDate } =
+    req.body;
+  console.log(calendarDate);
   let { task } = req.body;
   const userId = req.user.userId;
   task = capitalize(task);
@@ -40,6 +41,7 @@ router.post("/", authenticateToken, (req, res) => {
         calendarDate: calendarDate,
         time: time,
         isCompleted: isCompleted,
+        completedFullDate: completedFullDate,
       };
 
       user.list.push(newTask);
@@ -115,9 +117,6 @@ router.post("/task-completed", authenticateToken, (req, res, next) => {
   const userId = req.user.userId;
   const { taskToComplete, completedFullDate } = req.body.data;
 
-  console.log(completedFullDate);
-  console.log(taskToComplete);
-
   User.findOneAndUpdate(
     { _id: userId, "list.task": taskToComplete.task },
     { $set: { "list.$.isCompleted": true } }
@@ -129,12 +128,21 @@ router.post("/task-completed", authenticateToken, (req, res, next) => {
           message: "Task not found in user's list",
         });
       }
+      let index;
+      for (let i = 0; i < updatedUser.list.length; i++) {
+        if (updatedUser.list[i].task === taskToComplete.task) {
+          index = i;
+        }
+      }
 
-      updatedUser.save().then(() => {
-        res.status(200).json({
-          status: "SUCCESS",
-          message: "Task completed successfully",
-        });
+      updatedUser.list[index].completedFullDate = completedFullDate;
+
+      return updatedUser.save();
+    })
+    .then(() => {
+      res.status(200).json({
+        status: "SUCCESS",
+        message: "Task completed successfully",
       });
     })
     .catch((error) => {

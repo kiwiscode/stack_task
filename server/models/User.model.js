@@ -27,7 +27,16 @@ const userSchema = new Schema(
       required: true,
     },
     // verified: { type: Boolean, default: false },
-    list: [{}],
+    list: [
+      {
+        category: String,
+        task: String,
+        calendarDate: Object,
+        time: String,
+        isCompleted: Boolean,
+        completedFullDate: Array,
+      },
+    ],
     active: {
       type: Boolean,
       default: false,
