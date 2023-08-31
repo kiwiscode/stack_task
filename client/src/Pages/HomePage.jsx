@@ -127,12 +127,14 @@ function HomePage() {
     setTaskWindow("");
     setClearButton("hide");
     setclearCompletedTasksButton("hide");
+    setShowList("");
     setError("");
   };
 
   const closeTaskWindow = () => {
     setTaskWindow("hide");
     setClearButton("");
+    setShowCompleted("hide");
   };
 
   window.addEventListener("keyup", (event) => {
