@@ -25,4 +25,23 @@ npm install
    npm run dev
 
 cd server
-node server.js 2. Open your browser and navigate to `http://localhost:3000` to access the Stack-task application.
+node server.js 2. Open your browser and navigate to `http://localhost:5173` to access the Stack-task application. 3. **Sign Up and Log In:**
+
+- Before using the app, you need to sign up and log in.
+- Click on "Sign Up" to create a new account. Provide the required information and submit the form.
+- After signing up, click on "Log In" to access your account.
+
+4. Click "New task" to create new tasks.
+5. Use the appropriate buttons to complete or delete tasks.
+6. Utilize the search bar to search for tasks.
+
+## Technologies
+
+This project uses the following technologies:
+
+- HTML, CSS, JavaScript
+- React.js
+- MongoDB
+- Node.js, Express.js
+- Axios and JWT libraries
+- Material UI
