@@ -27,7 +27,10 @@ Stack-task is a task management application that allows you to track your future
    npm run dev
 
    cd server
-   node server.js 2. Open your browser and navigate to `http://localhost:5173` to access the Stack-task application. 3. **Sign Up and Log In:**
+   node server.js
+
+2. Open your browser and navigate to `http://localhost:5173` to access the Stack-task application.
+3. **Sign Up and Log In:**
 
 - Before using the app, you need to sign up and log in.
 - Click on "Sign Up" to create a new account. Provide the required information and submit the form.
