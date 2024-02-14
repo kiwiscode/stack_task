@@ -603,7 +603,7 @@ function HomePage() {
                             {task.category === "work" && (
                               <div
                                 style={{
-                                  backgroundColor: "#ffff00",
+                                  backgroundColor: "#fcefb8",
                                   color: "black",
                                 }}
                                 className="category-label work"
@@ -614,7 +614,10 @@ function HomePage() {
 
                             {task.category === "personal" && (
                               <div
-                                style={{ backgroundColor: "#800080" }}
+                                style={{
+                                  backgroundColor: "#f4d0e6",
+                                  color: "black",
+                                }}
                                 className="category-label personal"
                               >
                                 {capitalize(task.category)}
@@ -622,7 +625,10 @@ function HomePage() {
                             )}
                             {task.category === "family" && (
                               <div
-                                style={{ backgroundColor: "#1da1f2" }}
+                                style={{
+                                  backgroundColor: "#b0d0e9",
+                                  color: "black",
+                                }}
                                 className="category-label family"
                               >
                                 {capitalize(task.category)}
@@ -630,7 +636,10 @@ function HomePage() {
                             )}
                             {task.category === "pet" && (
                               <div
-                                style={{ backgroundColor: "#32de84" }}
+                                style={{
+                                  backgroundColor: "#92e0cf",
+                                  color: "black",
+                                }}
                                 className="category-label pet"
                               >
                                 {capitalize(task.category)}
@@ -700,7 +709,7 @@ function HomePage() {
                           {task.category === "work" && (
                             <div
                               style={{
-                                backgroundColor: "#ffff00",
+                                backgroundColor: "#fcefb8",
                                 color: "black",
                               }}
                               className="category-label work"
@@ -711,7 +720,10 @@ function HomePage() {
 
                           {task.category === "personal" && (
                             <div
-                              style={{ backgroundColor: "#800080" }}
+                              style={{
+                                backgroundColor: "#f4d0e6",
+                                color: "black",
+                              }}
                               className="category-label personal"
                             >
                               {capitalize(task.category)}
@@ -719,7 +731,10 @@ function HomePage() {
                           )}
                           {task.category === "family" && (
                             <div
-                              style={{ backgroundColor: "#1da1f2" }}
+                              style={{
+                                backgroundColor: "#b0d0e9",
+                                color: "black",
+                              }}
                               className="category-label family"
                             >
                               {capitalize(task.category)}
@@ -727,7 +742,10 @@ function HomePage() {
                           )}
                           {task.category === "pet" && (
                             <div
-                              style={{ backgroundColor: "#32de84" }}
+                              style={{
+                                backgroundColor: "#92e0cf",
+                                color: "black",
+                              }}
                               className="category-label pet"
                             >
                               {capitalize(task.category)}
@@ -851,6 +869,7 @@ function HomePage() {
               />
 
               <button
+                style={{ backgroundColor: "#4f52ed" }}
                 className="task-submit"
                 type="submit"
                 onClick={handleTaskSubmit}

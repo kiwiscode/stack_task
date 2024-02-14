@@ -1,4 +1,3 @@
-import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import { UserProvider } from "./Context/UserContext";
 import HomePage from "../src/Pages/HomePage";
