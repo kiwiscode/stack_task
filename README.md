@@ -4,40 +4,56 @@ Stack-task is a task management application that allows you to track your future
 
 ## Installation
 
-1. Clone this repository to your machine.
+1. Clone this repository to your machine:
 
+   ```bash
    git clone https://github.com/kiwiscode/stack-task.git
+   ```
 
-2. Navigate to the project directory.
+2. Navigate to the project directory:
 
+   ```bash
    cd stack-task
+   ```
 
 3. Install dependencies for the client and server parts by running the following commands in sequence:
 
+   ```bash
+   # For the client
    cd client
    npm install
 
+   # For the server
    cd server
    npm install
+   ```
 
 ## Usage
 
 1. While in the project directory in your terminal, start the client and server using the following commands:
+
+   ```bash
+   # Start the client
    cd client
    npm run dev
 
+   # Start the server
    cd server
    node server.js
+   ```
 
 2. Open your browser and navigate to `http://localhost:5173` to access the Stack-task application.
+
 3. **Sign Up and Log In:**
 
-- Before using the app, you need to sign up and log in.
-- Click on "Sign Up" to create a new account. Provide the required information and submit the form.
-- After signing up, click on "Log In" to access your account.
+   - Before using the app, you need to sign up and log in.
+   - Click on "Sign Up" to create a new account. Provide the required information and submit the form.
+   - After signing up, click on "Log In" to access your account.
 
 4. Click "New task" to create new tasks.
+
 5. Use the appropriate buttons to complete or delete tasks.
+
 6. Utilize the search bar to search for tasks.
 
 ## Technologies
