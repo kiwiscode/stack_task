@@ -21,6 +21,7 @@ router.post("/", authenticateToken, async (req, res) => {
       startDate,
       endDate,
       user: userId,
+      deleted: false,
     };
 
     let savedTask;
@@ -47,7 +48,13 @@ router.post("/", authenticateToken, async (req, res) => {
 // get tasks
 router.get("/all-tasks", authenticateToken, async (req, res) => {
   try {
-    const tasks = await Task.find({ user: req.user.userId });
+    const tasks = await Task.find({
+      user: req.user.userId,
+      deleted: false,
+      completed: false,
+    }).sort({
+      createdAt: -1,
+    });
 
     return res.status(200).json(tasks);
   } catch (error) {
@@ -86,118 +93,124 @@ router.get("/completed", authenticateToken, async (req, res) => {
   }
 });
 
-// complete the task and add it to completed tasks by its taskId
-router.put("/complete/:taskId", authenticateToken, async (req, res) => {
+// mark a task as completed by its taskId
+router.patch("/complete/:taskId", authenticateToken, async (req, res) => {
+  const { taskId } = req.params;
+
   try {
-    const { taskId } = req.params;
+    const updatedTask = await Task.findByIdAndUpdate(
+      taskId,
+      { completed: true },
+      { new: true }
+    );
 
-    console.log("task id to complete:", taskId);
-
-    const task = await Task.findById(taskId);
-
-    if (!task) {
-      return res.status(404).json({ message: "Task not found" });
+    if (!updatedTask) {
+      return res.status(404).json({ error: "Task not found" });
     }
 
     const completedTask = new CompletedTask({
-      task: task.task,
+      taskId,
+      task: updatedTask.task,
       status: "completed",
-      user: task.user,
-      category: task.category,
-      startDate: task.startDate,
-      endDate: task.endDate,
+      user: updatedTask.user,
+      category: updatedTask.category,
+      startDate: updatedTask.startDate,
+      endDate: updatedTask.endDate,
     });
 
     await completedTask.save();
 
-    await Task.findByIdAndDelete(taskId);
-
-    res.status(200).json({
-      message: "Task completed and moved to completed tasks",
-      completedTask,
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    res
-      .status(500)
-      .json({ message: "Failed to complete task", error: error.message });
-  }
-});
-
-// delete a task by its taskId
-router.delete("/delete/:taskId", authenticateToken, async (req, res) => {
-  const { taskId } = req.params;
-
-  try {
-    const deletedTask = await Task.findByIdAndDelete(taskId);
-
-    if (!deletedTask) {
-      return res.status(404).json({ error: "Task not found" });
-    }
-
-    return res.status(200).json({ message: "Task deleted successfully" });
+    return res
+      .status(200)
+      .json({ message: "Task marked as completed", task: updatedTask });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-router.delete("/delete-all", authenticateToken, (req, res) => {
-  User.updateOne({}, { $pull: { list: { isCompleted: false } } })
-    .then(() => {
-      res.json({
-        status: "DONE",
-        message: "TASKS DELETED",
-      });
-    })
-    .catch((error) => {
-      console.error("Error deleting tasks:", error);
-      res.status(500).json({
-        status: "FAILED",
-        message: "An error occurred while deleting tasks",
-      });
-    });
+// undo the completion of a task by its taskId (mark as uncompleted)
+router.patch("/uncomplete/:taskId", authenticateToken, async (req, res) => {
+  const { taskId } = req.params;
+
+  try {
+    const updatedTask = await Task.findByIdAndUpdate(
+      taskId,
+      { completed: false },
+      { new: true }
+    );
+
+    if (!updatedTask) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    await CompletedTask.findOneAndDelete({ taskId: taskId });
+
+    return res
+      .status(200)
+      .json({ message: "Task marked as uncompleted", task: updatedTask });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-router.delete("/delete-all-completed-tasks", authenticateToken, (req, res) => {
-  User.updateOne({}, { $pull: { list: { isCompleted: true } } })
-    .then(() => {
-      res.json({
-        status: "DONE",
-        message: "TASKS DELETED",
-      });
-    })
-    .catch((error) => {
-      console.error("Error deleting tasks:", error);
-      res.status(500).json({
-        status: "FAILED",
-        message: "An error occurred while deleting tasks",
-      });
-    });
+// soft delete a task by its taskId
+router.patch("/delete/:taskId", authenticateToken, async (req, res) => {
+  const { taskId } = req.params;
+
+  try {
+    const updatedTask = await Task.findByIdAndUpdate(
+      taskId,
+      { deleted: true },
+      { new: true }
+    );
+
+    if (!updatedTask) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Task marked as deleted", task: updatedTask });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-router.delete("/delete-completed-task", authenticateToken, (req, res) => {
-  const userId = req.user.userId;
-  const taskToDelete = req.body.task;
+// undo soft delete of a task by its taskId
+router.patch("/undo/:taskId", authenticateToken, async (req, res) => {
+  const { taskId } = req.params;
 
-  User.findById(userId)
-    .then((user) => {
-      user.list = user.list.filter((task) => task.task !== taskToDelete);
-      return user.save();
-    })
-    .then(() => {
-      res.json({
-        status: "DONE",
-        message: "TASKS DELETED",
-      });
-    })
-    .catch((error) => {
-      console.error("Error deleting tasks:", error);
-      res.status(500).json({
-        status: "FAILED",
-        message: "An error occurred while deleting tasks",
-      });
-    });
+  try {
+    const updatedTask = await Task.findByIdAndUpdate(
+      taskId,
+      { deleted: false },
+      { new: true }
+    );
+
+    if (!updatedTask) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Task restored successfully", task: updatedTask });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 });
+
+router.delete("/delete-all", authenticateToken, (req, res) => {});
+
+router.delete(
+  "/delete-all-completed-tasks",
+  authenticateToken,
+  (req, res) => {}
+);
+
+router.delete("/delete-completed-task", authenticateToken, (req, res) => {});
 
 module.exports = router;

@@ -13,7 +13,6 @@ const UserProvider = ({ children }) => {
         username: "",
         email: "",
         active: false,
-        list: [],
       }
     );
   });
@@ -35,7 +34,6 @@ const UserProvider = ({ children }) => {
       username: "",
       email: "",
       active: false,
-      list: [],
     });
     localStorage.removeItem("userInfo");
     localStorage.removeItem("token");

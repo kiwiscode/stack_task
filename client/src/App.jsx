@@ -1,19 +1,26 @@
-import { Routes, Route } from "react-router-dom";
-import { UserProvider } from "./Context/UserContext";
-import HomePage from "../src/Pages/HomePage";
-import LoginPage from "./Pages/LoginPage";
-import SignupPage from "./Pages/SignUpPage";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { UserContext } from "./Context/UserContext";
+import Dashboard from "../src/Pages/Dashboard";
+import SignUp from "./Pages/SignUp";
+import LogIn from "./Pages/Login";
+import { useContext } from "react";
+
 function App() {
+  const { userInfo, getToken } = useContext(UserContext);
+
   return (
-    <UserProvider>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<HomePage />}></Route>
-          <Route path="/login" element={<LoginPage />}></Route>
-          <Route path="/signup" element={<SignupPage />}></Route>
-        </Routes>
-      </div>
-    </UserProvider>
+    <div className="App">
+      <Routes>
+        <Route
+          path="/dashboard"
+          element={
+            userInfo && userInfo.active ? <Dashboard /> : <Navigate to="/" />
+          }
+        />
+        <Route path="/" element={<LogIn />} />
+        <Route path="/signup" element={<SignUp />} />
+      </Routes>
+    </div>
   );
 }
 

@@ -8,7 +8,7 @@ const API_URL = "http://localhost:3000";
 
 // when working on deployment version ???
 
-function LoginPage() {
+function LogIn() {
   const navigate = useNavigate();
   const { updateUser, userInfo } = useContext(UserContext);
   const [username, setUsername] = useState("");
@@ -40,23 +40,10 @@ function LoginPage() {
 
         localStorage.setItem("token", token);
         localStorage.setItem("userInfo", JSON.stringify(user));
-        localStorage.setItem("active", user.active);
-        localStorage.setItem("list", JSON.stringify(user.list));
+
         updateUser(user);
         setError("");
-        navigate("/");
-
-        axios
-          .get(`${API_URL}/`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .then(() => {})
-
-          .catch((error) => {
-            console.error("Error fetching list:", error);
-          });
+        navigate("/dashboard");
       })
       .catch((error) => {
         if (error.message === "Request failed with status code 400") {
@@ -112,4 +99,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default LogIn;

@@ -45,6 +45,7 @@ router.post("/signup", (req, res, next) => {
         username,
         email,
         password: hashedPassword,
+        profilePicture: "",
       });
     })
     .then((user) => {
@@ -108,7 +109,7 @@ router.post("/login", (req, res) => {
           }
           user.active = true;
           user.save().then((user) => {
-            const { _id, name, username, email, active, list } = user;
+            const { _id, name, username, email, active, profilePicture } = user;
 
             // with token
             const token = jwt.sign({ userId: _id }, process.env.JWT_SECRET, {
@@ -123,7 +124,7 @@ router.post("/login", (req, res) => {
                 username,
                 email,
                 active,
-                list,
+                profilePicture,
               },
             });
           });

@@ -7,7 +7,7 @@ const API_URL = "http://localhost:3000";
 
 // when working on deployment version ???
 
-function SignupPage() {
+function SignUp() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -105,4 +105,4 @@ function SignupPage() {
   );
 }
 
-export default SignupPage;
+export default SignUp;

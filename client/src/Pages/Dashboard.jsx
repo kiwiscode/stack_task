@@ -1,20 +1,29 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { UserContext } from "../Context/UserContext";
 import { useContext, useState, useEffect, useRef } from "react";
-import Calendar from "../Components/Calendar";
 import axios from "axios";
 import useWindowDimensions from "../utils/useWindowDimensions";
 import { Modal, Popover } from "@mui/material";
+import PopupState, { bindTrigger, bindPopover } from "material-ui-popup-state";
+
 import { styled } from "@mui/material/styles";
 import Tooltip, { tooltipClasses } from "@mui/material/Tooltip";
+import Lottie from "lottie-react";
+import animationData from "../assets/loading-animation/loading-animation.json";
+import { useAntdMessageHandler } from "../utils/useAntdMessageHandler";
+import completedTaskSound from "../sounds/todo-completed-sound.mp3";
 
 // when working on local version
 const API_URL = "http://localhost:3000";
 
 // when working on deployment version ???
-function HomePage() {
-  const { getToken, userInfo, logout } = useContext(UserContext);
+function Dashboard() {
+  const { getToken, userInfo, logout, updateUser } = useContext(UserContext);
+  const { showTaskDeletedMessage, showTaskCompletedMessage, contextHolder } =
+    useAntdMessageHandler();
+  const navigate = useNavigate();
   const { width } = useWindowDimensions();
+  const audio = new Audio(completedTaskSound);
   const today = new Date();
   const dayNum = today.getDay();
   const monthNum = today.getMonth() + 1;
@@ -55,8 +64,6 @@ function HomePage() {
       ? 0
       : ((inProgressTaskList.length / taskList?.length) * 100).toFixed(2);
 
-  console.log("completion percentage:", completionPercentage);
-
   // left side navigation bar hover effect
   const [myTaskHeadHovered, setMyTaskHeadHovered] = useState(false);
   const [inboxHeadHovered, setInboxHeadHovered] = useState(false);
@@ -75,18 +82,25 @@ function HomePage() {
   const [filterString, setFilterString] = useState("");
 
   // hovered task item
-  const [hoveredTodoTaskIndex, setHoveredTodoTaskIndex] = useState(null);
   const [hoveredTodoTaskMoreBtn, setHoveredTodoTaskMoreBtn] = useState(null);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [showDetailPopover, setShowDetailPopover] = useState(false);
-  const handleShowDetailPopover = (event) => {
-    setAnchorEl(event.currentTarget);
-    setShowDetailPopover(!showDetailPopover);
+
+  const [anchorElLogoutPopover, setAnchorElLogoutPopover] = useState(null);
+  const [showLogoutPopover, setShowLogoutPopover] = useState(false);
+  const [changingProfilePictureBar, setChangingProfilePictureBar] =
+    useState(false);
+  const [profileImage, setProfileImage] = useState("");
+  const [toRemoveTask, setToRemoveTask] = useState(null);
+  const [completedBtnAnimationActive, setCompletedBtnAnimationActive] =
+    useState(false);
+
+  const handleShowLogoutPopover = (event) => {
+    setAnchorElLogoutPopover(event.currentTarget);
+    setShowLogoutPopover(!showLogoutPopover);
   };
 
-  const handleCloseDetailPopover = () => {
-    setAnchorEl(null);
-    setShowDetailPopover(!showDetailPopover);
+  const handleCloseLogoutPopover = () => {
+    setAnchorElLogoutPopover(null);
+    setShowLogoutPopover(!showLogoutPopover);
   };
 
   const filteredTasks = taskList
@@ -169,7 +183,6 @@ function HomePage() {
       });
 
       setTaskList(result.data);
-      console.log("result all tasks:", result);
     } catch (error) {
       console.error("error:", error);
     }
@@ -185,7 +198,6 @@ function HomePage() {
       });
 
       setInProgressTaskList(result.data);
-      console.log("result all in progress:", result);
     } catch (error) {
       console.error("error:", error);
     }
@@ -201,17 +213,18 @@ function HomePage() {
       });
 
       setCompletedTask(result.data);
-      console.log("result all completed tasks:", result);
     } catch (error) {
       console.error("error:", error);
     }
   };
 
-  // complete the task and add it to completed tasks
-  const completeTheTask = async (taskId) => {
+  // complete the task softly
+  const taskSoftCompletion = async (taskToDelete, index, task) => {
+    audio.play();
+    setCompletedBtnAnimationActive(index);
     try {
-      await axios.put(
-        `${API_URL}/task/complete/${taskId}`,
+      await axios.patch(
+        `${API_URL}/task/complete/${taskToDelete}`,
         {},
         {
           headers: {
@@ -220,9 +233,36 @@ function HomePage() {
         }
       );
 
-      getAllTasks();
-      getAllInProgressTasks();
-      getAllCompletedTasks();
+      setTimeout(() => {
+        getAllTasks();
+        getAllInProgressTasks();
+        getAllCompletedTasks();
+      }, 300);
+
+      const undoCompleted = async (req, res) => {
+        try {
+          await axios.patch(
+            `${API_URL}/task/uncomplete/${taskToDelete}`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${getToken()}`,
+              },
+            }
+          );
+
+          getAllTasks();
+          getAllInProgressTasks();
+          getAllCompletedTasks();
+        } catch (error) {
+          console.error("error:", error);
+        }
+      };
+
+      setTimeout(() => {
+        setCompletedBtnAnimationActive(null);
+      }, 300);
+      showTaskCompletedMessage("Task completed", 3, undoCompleted);
     } catch (error) {
       console.error("error:", error);
     }
@@ -246,13 +286,9 @@ function HomePage() {
     });
   };
 
-  useEffect(() => {
-    console.log("new task form data:", newTaskFormData);
-  }, [newTaskFormData]);
-
-  const addTask = async () => {
+  const addTask = async (addTaskAgainData) => {
     try {
-      const result = await axios.post(
+      await axios.post(
         `${API_URL}/task`,
         { newTaskFormData },
         {
@@ -262,20 +298,18 @@ function HomePage() {
         }
       );
 
-      setTimeout(() => {
-        setNewTaskFormData({
-          task: "",
-          status: "todo",
-          category: "work",
-          startDate: "",
-          endDate: "",
-        });
-        setNewTaskInputValue("");
-        closeAddTaskModal();
-        getAllTasks();
-        getAllInProgressTasks();
-        getAllCompletedTasks();
-      }, 500);
+      setNewTaskFormData({
+        task: "",
+        status: "todo",
+        category: "work",
+        startDate: "",
+        endDate: "",
+      });
+      closeAddTaskModal();
+      setNewTaskInputValue("");
+      getAllTasks();
+      getAllInProgressTasks();
+      getAllCompletedTasks();
     } catch (error) {
       console.error("error:", error);
     }
@@ -324,8 +358,117 @@ function HomePage() {
     },
   }));
 
+  // handle logout
+  const handleLogout = async () => {
+    try {
+      const result = await axios.post(
+        `${API_URL}/logout`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+
+      logout();
+      navigate("/");
+      console.log("result after logout:", result);
+    } catch (error) {
+      console.error("error:", error);
+    }
+  };
+
+  // change profile picture
+  const handleChangeProfileImage = (e) => {
+    const file = e.target.files[0];
+    handleChangeProfileImageSetFileToBase(file);
+  };
+
+  const handleChangeProfileImageSetFileToBase = (file) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      setProfileImage(reader.result);
+    };
+  };
+
+  const changeProfileImage = async () => {
+    setChangingProfilePictureBar(true);
+
+    try {
+      const result = await axios.post(
+        `${API_URL}/users/${userInfo?._id}/change_profile_image`,
+        {
+          image: profileImage,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+
+      console.log("result after changing image:", result.data.imageInfo.url);
+      updateUser({ profilePicture: result.data.imageInfo.url });
+      setProfileImage("");
+      if (result.data.imageInfo.url) {
+        setChangingProfilePictureBar(false);
+      }
+    } catch (error) {
+      console.error("error:", error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    if (profileImage) {
+      changeProfileImage();
+    }
+  }, [profileImage]);
+
+  // delete task
+  const taskSoftDeletion = async (taskToDelete, task) => {
+    try {
+      await axios.patch(
+        `${API_URL}/task/delete/${taskToDelete}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+
+      getAllTasks();
+
+      const undoTask = async (req, res) => {
+        try {
+          await axios.patch(
+            `${API_URL}/task/undo/${taskToDelete}`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${getToken()}`,
+              },
+            }
+          );
+
+          getAllTasks();
+        } catch (error) {
+          console.error("error:", error);
+        }
+      };
+
+      showTaskDeletedMessage("Task deleted", 3, undoTask);
+    } catch (error) {
+      console.error("error:", error);
+    }
+  };
+
   return (
     <>
+      {contextHolder}
       <div className="main-container">
         {!userInfo.active && (
           <div>
@@ -339,7 +482,6 @@ function HomePage() {
             </NavLink>
           </div>
         )}
-
         {/* add task modal */}
         <Modal
           open={showAddTaskModal}
@@ -535,9 +677,9 @@ function HomePage() {
                           }}
                           d="M10 9V14C10 15.1046 10.8954 16 12 16V16C13.1046 16 14 15.1046 14 14V7C14 4.79086 12.2091 3 10 3V3C7.79086 3 6 4.79086 6 7V15C6 18.3137 8.68629 21 12 21V21C15.3137 21 18 18.3137 18 15V5"
                           stroke={myTaskHeadHovered ? "#5757ff" : "black"}
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
                         />
                       </svg>
                     </span>
@@ -590,10 +732,10 @@ function HomePage() {
                           <defs />
                           <g
                             fill="none"
-                            fill-rule="evenodd"
+                            fillRule="evenodd"
                             id="Page-1"
                             stroke="none"
-                            stroke-width="1"
+                            strokeWidth="1"
                           >
                             <g
                               fill="#5558fd"
@@ -634,10 +776,10 @@ function HomePage() {
                           <defs />
                           <g
                             fill="none"
-                            fill-rule="evenodd"
+                            fillRule="evenodd"
                             id="Page-1"
                             stroke="none"
-                            stroke-width="1"
+                            strokeWidth="1"
                           >
                             <g
                               fill="#5558fd"
@@ -679,10 +821,10 @@ function HomePage() {
                           <defs />
                           <g
                             fill="none"
-                            fill-rule="evenodd"
+                            fillRule="evenodd"
                             id="Page-1"
                             stroke="none"
-                            stroke-width="1"
+                            strokeWidth="1"
                           >
                             <g
                               fill="#5558fd"
@@ -724,10 +866,10 @@ function HomePage() {
                           <defs />
                           <g
                             fill="none"
-                            fill-rule="evenodd"
+                            fillRule="evenodd"
                             id="Page-1"
                             stroke="none"
-                            stroke-width="1"
+                            strokeWidth="1"
                           >
                             <g
                               fill="#5558fd"
@@ -1044,7 +1186,6 @@ function HomePage() {
                   height={18}
                   className="input-search-icon"
                   xmlns="http://www.w3.org/2000/svg"
-                  xmlns:xlink="http://www.w3.org/1999/xlink"
                   id="Layer_1"
                   version="1.1"
                   viewBox="0 0 512 512"
@@ -1059,17 +1200,54 @@ function HomePage() {
               </button>
             </div>
             <div className="pp">
-              <div className="profile-container">
-                <img
-                  src="http://res.cloudinary.com/ddqbb9yqj/image/upload/v1724948193/chat_app/tav8jfh17kkxo8oo5kcc.jpg"
-                  alt="Profile"
-                  className="profile-photo"
+              <div
+                onClick={() => {
+                  if (!changingProfilePictureBar) {
+                    document
+                      .getElementById("formuploadModal-profile-image")
+                      .click();
+                  }
+                }}
+                className={`profile-container`}
+                style={{
+                  pointerEvents: !changingProfilePictureBar ? "auto" : "none",
+                  cursor: !changingProfilePictureBar ? "pointer" : "default",
+                }}
+              >
+                {userInfo.profilePicture && !changingProfilePictureBar ? (
+                  <>
+                    <img
+                      src={userInfo.profilePicture}
+                      alt="Profile"
+                      className="profile-photo"
+                    />
+                    <div className="online-indicator"></div>
+                  </>
+                ) : !changingProfilePictureBar ? (
+                  <>
+                    <div className="profile-image-place-holder">
+                      {userInfo.name[0].toUpperCase()}
+                    </div>
+                    <div className="online-indicator"></div>
+                  </>
+                ) : (
+                  <Lottie animationData={animationData} />
+                )}
+
+                <input
+                  onChange={handleChangeProfileImage}
+                  type="file"
+                  id="formuploadModal-profile-image"
+                  name="profileImage"
+                  className="form-control"
+                  style={{ display: "none" }}
                 />
-                <div className="online-indicator"></div>
               </div>
+              {/* logout popover start to check */}
               <div className="icon">
                 {" "}
                 <svg
+                  onClick={handleShowLogoutPopover}
                   style={{
                     display: "flex",
                     cursor: "pointer",
@@ -1083,7 +1261,46 @@ function HomePage() {
                   <title />
                   <path d="M81.8457,25.3876a6.0239,6.0239,0,0,0-8.45.7676L48,56.6257l-25.396-30.47a5.999,5.999,0,1,0-9.2114,7.6879L43.3943,69.8452a5.9969,5.9969,0,0,0,9.2114,0L82.6074,33.8431A6.0076,6.0076,0,0,0,81.8457,25.3876Z" />
                 </svg>
+                {/* popover here !!! */}
+                <Popover
+                  className="popover-material-ui-light-theme"
+                  open={showLogoutPopover}
+                  anchorEl={anchorElLogoutPopover}
+                  onClose={handleCloseLogoutPopover}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                >
+                  <div
+                    onClick={handleLogout}
+                    className="popover-content-details"
+                  >
+                    <div className="logout-option-wrapper logout-option pointer">
+                      <div
+                        style={{
+                          display: "flex",
+                        }}
+                      >
+                        <svg width={16} height={16} viewBox="0 0 24 24">
+                          <g fill="none" fillRule="evenodd">
+                            <path
+                              stroke="currentColor"
+                              d="M6.5 8.3V5.63c0-1.17.9-2.13 2-2.13h7c1.1 0 2 .95 2 2.13v11.74c0 1.17-.9 2.13-2 2.13h-7c-1.1 0-2-.95-2-2.13V14.7"
+                            ></path>
+                            <path
+                              fill="currentColor"
+                              d="m12.8 11-2.15-2.15a.5.5 0 1 1 .7-.7L14 10.79a1 1 0 0 1 0 1.42l-2.65 2.64a.5.5 0 0 1-.7-.7L12.79 12H4.5a.5.5 0 0 1 0-1h8.3z"
+                            ></path>
+                          </g>
+                        </svg>
+                      </div>
+                      <div>Log out</div>
+                    </div>
+                  </div>
+                </Popover>
               </div>
+              {/* logout popover finish to check */}
             </div>
           </div>
           <div className="content-container-mid-section">
@@ -1103,12 +1320,12 @@ function HomePage() {
                   }}
                 >
                   <input
-                    class="mt-5 default-value-input"
+                    className="mt-5 default-value-input"
                     type="date"
                     min={todaysDate}
                     max={todaysDate}
                   />
-                  <label for="date-input" class="input-label">
+                  <label htmlFor="date-input" className="input-label">
                     Today
                   </label>
                 </div>
@@ -1223,7 +1440,7 @@ function HomePage() {
                       <title />
                       <desc />
                       <defs />
-                      <g fill="none" id="Page-1" stroke="none" stroke-width="1">
+                      <g fill="none" id="Page-1" stroke="none" strokeWidth="1">
                         <g
                           fill="white"
                           id="Core"
@@ -1278,11 +1495,18 @@ function HomePage() {
                   <div>
                     <div className="pp">
                       <div className="profile-container">
-                        <img
-                          src="http://res.cloudinary.com/ddqbb9yqj/image/upload/v1724948193/chat_app/tav8jfh17kkxo8oo5kcc.jpg"
-                          alt="Profile"
-                          className="profile-photo"
-                        />
+                        {userInfo.profilePicture ? (
+                          <img
+                            src={userInfo.profilePicture}
+                            alt="Profile"
+                            width={40}
+                            height={40}
+                          />
+                        ) : (
+                          <div className="profile-image-place-holder-variant-two">
+                            {userInfo.name[0].toUpperCase()}
+                          </div>
+                        )}
                         <div className="online-indicator"></div>
                       </div>
                     </div>
@@ -1324,278 +1548,364 @@ function HomePage() {
                 {!showCompletedTasks ? (
                   <>
                     {filteredTasks.map((task, index) => (
-                      <div
-                        onMouseEnter={() => setHoveredTodoTaskIndex(index)}
-                        onMouseLeave={() => setHoveredTodoTaskIndex(null)}
-                        key={index}
-                        className="last-section-task-details"
-                      >
-                        <div className="task-wrapper">
-                          <div>
-                            <div>
-                              <svg
-                                onClick={() => completeTheTask(task._id)}
-                                style={{
-                                  borderRadius: "50%",
-                                  cursor: "pointer",
-                                }}
-                                width={18}
-                                height={18}
-                                fill="black"
-                                viewBox="0 0 32 32"
-                              >
-                                <defs></defs>
-                                <title />
-                                <g>
-                                  <path d="M16,31A15,15,0,1,1,31,16,15,15,0,0,1,16,31ZM16,3A13,13,0,1,0,29,16,13,13,0,0,0,16,3Z" />
-                                  <path d="M13.67,22a1,1,0,0,1-.73-.32l-4.67-5a1,1,0,0,1,1.46-1.36l3.94,4.21,8.6-9.21a1,1,0,1,1,1.46,1.36l-9.33,10A1,1,0,0,1,13.67,22Z" />
-                                </g>
-                              </svg>
-                            </div>
-                            <div>{task.task}</div>
-                          </div>
+                      <>
+                        {!task.completed && (
+                          <div
+                            onMouseEnter={() =>
+                              setHoveredTodoTaskMoreBtn(index)
+                            }
+                            onMouseLeave={() => setHoveredTodoTaskMoreBtn(null)}
+                            key={index}
+                            className={`last-section-task-details `}
+                          >
+                            <div className="task-wrapper">
+                              <div>
+                                <div>
+                                  <svg
+                                    className={`clicked_animate ${
+                                      completedBtnAnimationActive === index
+                                        ? ""
+                                        : "reset"
+                                    }`}
+                                    onClick={() => {
+                                      taskSoftCompletion(task._id, index);
+                                    }}
+                                    style={{
+                                      borderRadius: "50%",
+                                      cursor: "pointer",
+                                    }}
+                                    width={18}
+                                    height={18}
+                                    fill="black"
+                                    viewBox="0 0 32 32"
+                                  >
+                                    <defs></defs>
+                                    <title />
+                                    <g>
+                                      <path d="M16,31A15,15,0,1,1,31,16,15,15,0,0,1,16,31ZM16,3A13,13,0,1,0,29,16,13,13,0,0,0,16,3Z" />
+                                      <path d="M13.67,22a1,1,0,0,1-.73-.32l-4.67-5a1,1,0,0,1,1.46-1.36l3.94,4.21,8.6-9.21a1,1,0,1,1,1.46,1.36l-9.33,10A1,1,0,0,1,13.67,22Z" />
+                                    </g>
+                                  </svg>
+                                </div>
+                                <div>{task.task}</div>
+                              </div>
 
-                          <div className="category-and-detail-task-wrapper">
-                            <div
-                              onMouseEnter={() =>
-                                setHoveredTodoTaskMoreBtn(index)
-                              }
-                              onMouseLeave={() =>
-                                setHoveredTodoTaskMoreBtn(null)
-                              }
-                              style={{
-                                backgroundColor:
-                                  hoveredTodoTaskMoreBtn === index && "#f7f6ff",
-                                transition: "background-color 0.25s ease 0s",
-                              }}
-                              className="more-btn-wrapper"
-                              onClick={handleShowDetailPopover}
-                            >
-                              {hoveredTodoTaskIndex === index && (
-                                <svg
-                                  style={{
-                                    transition: "fill 0.25s ease 0s",
-                                  }}
-                                  fill={
-                                    hoveredTodoTaskMoreBtn === index
-                                      ? "#5757ff"
-                                      : "#75757A"
-                                  }
-                                  height="18px"
-                                  width="18px"
-                                  viewBox="0 0 512 512"
+                              <div className="category-and-detail-task-wrapper">
+                                {/* popover start to check */}
+                                <PopupState
+                                  variant="popover"
+                                  popupId="demo-popup-popover"
                                 >
-                                  <g>
-                                    <path d="M256,224c-17.7,0-32,14.3-32,32s14.3,32,32,32c17.7,0,32-14.3,32-32S273.7,224,256,224L256,224z" />
-                                    <path d="M128.4,224c-17.7,0-32,14.3-32,32s14.3,32,32,32c17.7,0,32-14.3,32-32S146,224,128.4,224L128.4,224z" />
-                                    <path d="M384,224c-17.7,0-32,14.3-32,32s14.3,32,32,32s32-14.3,32-32S401.7,224,384,224L384,224z" />
+                                  {(popupState) => (
+                                    <div>
+                                      <div
+                                        onMouseEnter={() =>
+                                          setHoveredTodoTaskMoreBtn(index)
+                                        }
+                                        onMouseLeave={() =>
+                                          setHoveredTodoTaskMoreBtn(null)
+                                        }
+                                        style={{
+                                          backgroundColor:
+                                            hoveredTodoTaskMoreBtn === index &&
+                                            "#f7f6ff",
+                                          transition:
+                                            "background-color 0.25s ease 0s",
+                                        }}
+                                        className="more-btn-wrapper"
+                                        {...bindTrigger(popupState)}
+                                      >
+                                        {hoveredTodoTaskMoreBtn === index && (
+                                          <svg
+                                            style={{
+                                              transition: "fill 0.25s ease 0s",
+                                            }}
+                                            fill={
+                                              hoveredTodoTaskMoreBtn === index
+                                                ? "#5757ff"
+                                                : "#75757A"
+                                            }
+                                            height="18px"
+                                            width="18px"
+                                            viewBox="0 0 512 512"
+                                          >
+                                            <g>
+                                              <path d="M256,224c-17.7,0-32,14.3-32,32s14.3,32,32,32c17.7,0,32-14.3,32-32S273.7,224,256,224L256,224z" />
+                                              <path d="M128.4,224c-17.7,0-32,14.3-32,32s14.3,32,32,32c17.7,0,32-14.3,32-32S146,224,128.4,224L128.4,224z" />
+                                              <path d="M384,224c-17.7,0-32,14.3-32,32s14.3,32,32,32s32-14.3,32-32S401.7,224,384,224L384,224z" />
+                                            </g>
+                                          </svg>
+                                        )}
+                                      </div>
+                                      <Popover
+                                        className="popover-material-ui-light-theme"
+                                        {...bindPopover(popupState)}
+                                        anchorOrigin={{
+                                          vertical: "center",
+                                          horizontal: "left",
+                                        }}
+                                        transformOrigin={{
+                                          vertical: "center",
+                                          horizontal: "right",
+                                        }}
+                                      >
+                                        <div className="popover-content-details">
+                                          <div className="priority-options-wrapper priority-option">
+                                            <div className="first-content-priority-options">
+                                              <div>Priority</div>
+                                              <div>
+                                                <kbd className="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
+                                                  Y
+                                                </kbd>
+                                              </div>
+                                            </div>
+                                            <div className="second-content-priority-options">
+                                              <div
+                                                className="pointer"
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                }}
+                                              >
+                                                <LightTooltip title="Priority 1">
+                                                  <svg
+                                                    width="24"
+                                                    height="24"
+                                                    viewBox="0 0 24 24"
+                                                  >
+                                                    <path
+                                                      fill="#D0453A"
+                                                      fillRule="evenodd"
+                                                      d="M4.223 4.584A.5.5 0 0 0 4 5v14.5a.5.5 0 0 0 1 0v-5.723C5.886 13.262 7.05 13 8.5 13c.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.759 0 3.187-.357 4.277-1.084A.5.5 0 0 0 20 13V4.5a.5.5 0 0 0-.777-.416C18.313 4.69 17.075 5 15.5 5c-.97 0-1.704-.178-3.342-.724C10.421 3.696 9.613 3.5 8.5 3.5c-1.758 0-3.187.357-4.277 1.084Z"
+                                                      clipRule="evenodd"
+                                                    ></path>
+                                                  </svg>
+                                                </LightTooltip>
+                                              </div>
+                                              <div
+                                                className="pointer"
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                }}
+                                              >
+                                                <LightTooltip title="Priority 2">
+                                                  <svg
+                                                    width="24"
+                                                    height="24"
+                                                    viewBox="0 0 24 24"
+                                                  >
+                                                    <path
+                                                      fill="#EB8907"
+                                                      fillRule="evenodd"
+                                                      d="M4.223 4.584A.5.5 0 0 0 4 5v14.5a.5.5 0 0 0 1 0v-5.723C5.886 13.262 7.05 13 8.5 13c.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.759 0 3.187-.357 4.277-1.084A.5.5 0 0 0 20 13V4.5a.5.5 0 0 0-.777-.416C18.313 4.69 17.075 5 15.5 5c-.97 0-1.704-.178-3.342-.724C10.421 3.696 9.613 3.5 8.5 3.5c-1.758 0-3.187.357-4.277 1.084Z"
+                                                      clipRule="evenodd"
+                                                    ></path>
+                                                  </svg>
+                                                </LightTooltip>
+                                              </div>
+                                              <div
+                                                className="pointer"
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                }}
+                                              >
+                                                <LightTooltip title="Priority 3">
+                                                  <svg
+                                                    width="24"
+                                                    height="24"
+                                                    viewBox="0 0 24 24"
+                                                  >
+                                                    <path
+                                                      fill="#236EE0"
+                                                      fillRule="evenodd"
+                                                      d="M4.223 4.584A.5.5 0 0 0 4 5v14.5a.5.5 0 0 0 1 0v-5.723C5.886 13.262 7.05 13 8.5 13c.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.759 0 3.187-.357 4.277-1.084A.5.5 0 0 0 20 13V4.5a.5.5 0 0 0-.777-.416C18.313 4.69 17.075 5 15.5 5c-.97 0-1.704-.178-3.342-.724C10.421 3.696 9.613 3.5 8.5 3.5c-1.758 0-3.187.357-4.277 1.084Z"
+                                                      clipRule="evenodd"
+                                                    ></path>
+                                                  </svg>
+                                                </LightTooltip>
+                                              </div>
+                                              <div
+                                                className="pointer"
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                  border:
+                                                    "1px solid rgb(231,231,231)",
+                                                }}
+                                              >
+                                                <LightTooltip title="Priority 4">
+                                                  <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="24"
+                                                    height="24"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    className="g1pQExb"
+                                                    data-icon-name="priority-icon"
+                                                    data-priority="4"
+                                                  >
+                                                    <path
+                                                      fill="currentColor"
+                                                      fillRule="evenodd"
+                                                      d="M4 5a.5.5 0 0 1 .223-.416C5.313 3.857 6.742 3.5 8.5 3.5c1.113 0 1.92.196 3.658.776C13.796 4.822 14.53 5 15.5 5c1.575 0 2.813-.31 3.723-.916A.5.5 0 0 1 20 4.5V13a.5.5 0 0 1-.223.416c-1.09.727-2.518 1.084-4.277 1.084-1.113 0-1.92-.197-3.658-.776C10.204 13.178 9.47 13 8.5 13c-1.45 0-2.614.262-3.5.777V19.5a.5.5 0 0 1-1 0V5Zm4.5 7c-1.367 0-2.535.216-3.5.654V5.277c.886-.515 2.05-.777 3.5-.777.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.367 0 2.535-.216 3.5-.654v7.377c-.886.515-2.05.777-3.5.777-.97 0-1.704-.178-3.342-.724C10.421 12.196 9.613 12 8.5 12Z"
+                                                      clipRule="evenodd"
+                                                    ></path>
+                                                  </svg>
+                                                </LightTooltip>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div className="content-wrapper edit-option pointer">
+                                            <div className="first-content-popover ">
+                                              <div>
+                                                <svg
+                                                  width={16}
+                                                  height={16}
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <g
+                                                    fill="none"
+                                                    fillRule="evenodd"
+                                                  >
+                                                    <path
+                                                      fill="currentColor"
+                                                      d="M9.5 19h10a.5.5 0 1 1 0 1h-10a.5.5 0 1 1 0-1z"
+                                                    ></path>
+                                                    <path
+                                                      stroke="currentColor"
+                                                      d="M4.42 16.03a1.5 1.5 0 0 0-.43.9l-.22 2.02a.5.5 0 0 0 .55.55l2.02-.21a1.5 1.5 0 0 0 .9-.44L18.7 7.4a1.5 1.5 0 0 0 0-2.12l-.7-.7a1.5 1.5 0 0 0-2.13 0L4.42 16.02z"
+                                                    ></path>
+                                                  </g>
+                                                </svg>
+                                              </div>
+                                              <div>Edit</div>
+                                            </div>
+                                            <div className="second-content-popover">
+                                              <div>
+                                                <kbd className="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
+                                                  ⌘
+                                                </kbd>
+                                              </div>
+                                              <div>
+                                                <kbd className="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
+                                                  E
+                                                </kbd>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div
+                                            className="content-wrapper delete-option pointer"
+                                            onClick={() => {
+                                              taskSoftDeletion(task._id, task);
+                                              popupState.close();
+                                            }}
+                                          >
+                                            <div className="first-content-popover  ">
+                                              <div>
+                                                <svg
+                                                  width={16}
+                                                  height={16}
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <g
+                                                    fill="none"
+                                                    fillRule="evenodd"
+                                                  >
+                                                    <path d="M0 0h24v24H0z"></path>
+                                                    <rect
+                                                      width="14"
+                                                      height="1"
+                                                      x="5"
+                                                      y="6"
+                                                      fill="currentColor"
+                                                      rx="0.5"
+                                                    ></rect>
+                                                    <path
+                                                      fill="currentColor"
+                                                      d="M10 9h1v8h-1V9zm3 0h1v8h-1V9z"
+                                                    ></path>
+                                                    <path
+                                                      stroke="currentColor"
+                                                      d="M17.5 6.5h-11V18A1.5 1.5 0 0 0 8 19.5h8a1.5 1.5 0 0 0 1.5-1.5V6.5zm-9 0h7V5A1.5 1.5 0 0 0 14 3.5h-4A1.5 1.5 0 0 0 8.5 5v1.5z"
+                                                    ></path>
+                                                  </g>
+                                                </svg>
+                                              </div>
+                                              <div>Delete</div>
+                                            </div>
+                                            <div className="second-content-popover">
+                                              <div>
+                                                <kbd className="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
+                                                  ⌘
+                                                </kbd>
+                                              </div>
+                                              <div>
+                                                <kbd className="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
+                                                  ⌫
+                                                </kbd>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </Popover>
+                                    </div>
+                                  )}
+                                </PopupState>
+                                {/* popover finish to check */}
+
+                                <div
+                                  className={`category-${task.category.toLowerCase()}`}
+                                >
+                                  {task.category.charAt(0).toUpperCase() +
+                                    task.category.slice(1)}
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              style={{
+                                borderBottom: "1px solid rgb(231,231,231)",
+                              }}
+                            ></div>
+                          </div>
+                        )}
+                      </>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {completedTask.map((task, index) => (
+                      <>
+                        <div key={index} className="last-section-task-details">
+                          <div className="task-wrapper">
+                            <div>
+                              <div>
+                                <svg
+                                  width={18}
+                                  height={18}
+                                  version="1.1"
+                                  viewBox="0 0 25 25"
+                                >
+                                  <title />
+                                  <desc />
+                                  <defs />
+                                  <g
+                                    fillRule="evenodd"
+                                    stroke="none"
+                                    strokeWidth="1"
+                                  >
+                                    <g fill="#5aed7c">
+                                      <path
+                                        d="M12.5,25 C19.4035594,25 25,19.4035594 25,12.5 C25,5.59644063 19.4035594,0 12.5,0 C5.59644063,0 0,5.59644063 0,12.5 C0,19.4035594 5.59644063,25 12.5,25 Z M9.5007864,16.7921068 L5.37867966,12.6700001 L4.67157288,13.3771069 L9.62132034,18.3268543 L10.3284271,17.6197475 L10.2078932,17.4992136 L20.1568542,7.55025253 L19.4497475,6.84314575 L9.5007864,16.7921068 Z"
+                                        id="Check-Circle"
+                                      />
+                                    </g>
                                   </g>
                                 </svg>
-                              )}
-                              <Popover
-                                className="popover-material-ui-light-theme"
-                                open={showDetailPopover}
-                                anchorEl={anchorEl}
-                                onClose={handleCloseDetailPopover}
-                                anchorOrigin={{
-                                  vertical: "center",
-                                  horizontal: "left",
-                                }}
-                                transformOrigin={{
-                                  vertical: "center",
-                                  horizontal: "right",
-                                }}
-                              >
-                                <div className="popover-content-details">
-                                  <div className="priority-options-wrapper priority-option">
-                                    <div className="first-content-priority-options">
-                                      <div>Priority</div>
-                                      <div>
-                                        <kbd class="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
-                                          Y
-                                        </kbd>
-                                      </div>
-                                    </div>
-                                    <div className="second-content-priority-options">
-                                      <div
-                                        className="pointer"
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        <LightTooltip title="Priority 1">
-                                          <svg
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24"
-                                          >
-                                            <path
-                                              fill="#D0453A"
-                                              fill-rule="evenodd"
-                                              d="M4.223 4.584A.5.5 0 0 0 4 5v14.5a.5.5 0 0 0 1 0v-5.723C5.886 13.262 7.05 13 8.5 13c.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.759 0 3.187-.357 4.277-1.084A.5.5 0 0 0 20 13V4.5a.5.5 0 0 0-.777-.416C18.313 4.69 17.075 5 15.5 5c-.97 0-1.704-.178-3.342-.724C10.421 3.696 9.613 3.5 8.5 3.5c-1.758 0-3.187.357-4.277 1.084Z"
-                                              clip-rule="evenodd"
-                                            ></path>
-                                          </svg>
-                                        </LightTooltip>
-                                      </div>
-                                      <div
-                                        className="pointer"
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        <LightTooltip title="Priority 2">
-                                          <svg
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24"
-                                          >
-                                            <path
-                                              fill="#EB8907"
-                                              fill-rule="evenodd"
-                                              d="M4.223 4.584A.5.5 0 0 0 4 5v14.5a.5.5 0 0 0 1 0v-5.723C5.886 13.262 7.05 13 8.5 13c.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.759 0 3.187-.357 4.277-1.084A.5.5 0 0 0 20 13V4.5a.5.5 0 0 0-.777-.416C18.313 4.69 17.075 5 15.5 5c-.97 0-1.704-.178-3.342-.724C10.421 3.696 9.613 3.5 8.5 3.5c-1.758 0-3.187.357-4.277 1.084Z"
-                                              clip-rule="evenodd"
-                                            ></path>
-                                          </svg>
-                                        </LightTooltip>
-                                      </div>
-                                      <div
-                                        className="pointer"
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        <LightTooltip title="Priority 3">
-                                          <svg
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24"
-                                          >
-                                            <path
-                                              fill="#236EE0"
-                                              fill-rule="evenodd"
-                                              d="M4.223 4.584A.5.5 0 0 0 4 5v14.5a.5.5 0 0 0 1 0v-5.723C5.886 13.262 7.05 13 8.5 13c.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.759 0 3.187-.357 4.277-1.084A.5.5 0 0 0 20 13V4.5a.5.5 0 0 0-.777-.416C18.313 4.69 17.075 5 15.5 5c-.97 0-1.704-.178-3.342-.724C10.421 3.696 9.613 3.5 8.5 3.5c-1.758 0-3.187.357-4.277 1.084Z"
-                                              clip-rule="evenodd"
-                                            ></path>
-                                          </svg>
-                                        </LightTooltip>
-                                      </div>
-                                      <div
-                                        className="pointer"
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          border: "1px solid rgb(231,231,231)",
-                                        }}
-                                      >
-                                        <LightTooltip title="Priority 4">
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="24"
-                                            height="24"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            class="g1pQExb"
-                                            data-icon-name="priority-icon"
-                                            data-priority="4"
-                                          >
-                                            <path
-                                              fill="currentColor"
-                                              fill-rule="evenodd"
-                                              d="M4 5a.5.5 0 0 1 .223-.416C5.313 3.857 6.742 3.5 8.5 3.5c1.113 0 1.92.196 3.658.776C13.796 4.822 14.53 5 15.5 5c1.575 0 2.813-.31 3.723-.916A.5.5 0 0 1 20 4.5V13a.5.5 0 0 1-.223.416c-1.09.727-2.518 1.084-4.277 1.084-1.113 0-1.92-.197-3.658-.776C10.204 13.178 9.47 13 8.5 13c-1.45 0-2.614.262-3.5.777V19.5a.5.5 0 0 1-1 0V5Zm4.5 7c-1.367 0-2.535.216-3.5.654V5.277c.886-.515 2.05-.777 3.5-.777.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.367 0 2.535-.216 3.5-.654v7.377c-.886.515-2.05.777-3.5.777-.97 0-1.704-.178-3.342-.724C10.421 12.196 9.613 12 8.5 12Z"
-                                              clip-rule="evenodd"
-                                            ></path>
-                                          </svg>
-                                        </LightTooltip>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="content-wrapper edit-option">
-                                    <div className="first-content-popover pointer">
-                                      <div>
-                                        <svg
-                                          width={16}
-                                          height={16}
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <g fill="none" fill-rule="evenodd">
-                                            <path
-                                              fill="currentColor"
-                                              d="M9.5 19h10a.5.5 0 1 1 0 1h-10a.5.5 0 1 1 0-1z"
-                                            ></path>
-                                            <path
-                                              stroke="currentColor"
-                                              d="M4.42 16.03a1.5 1.5 0 0 0-.43.9l-.22 2.02a.5.5 0 0 0 .55.55l2.02-.21a1.5 1.5 0 0 0 .9-.44L18.7 7.4a1.5 1.5 0 0 0 0-2.12l-.7-.7a1.5 1.5 0 0 0-2.13 0L4.42 16.02z"
-                                            ></path>
-                                          </g>
-                                        </svg>
-                                      </div>
-                                      <div>Edit</div>
-                                    </div>
-                                    <div className="second-content-popover">
-                                      <div>
-                                        <kbd class="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
-                                          ⌘
-                                        </kbd>
-                                      </div>
-                                      <div>
-                                        <kbd class="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
-                                          E
-                                        </kbd>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="content-wrapper delete-option">
-                                    <div className="first-content-popover pointer ">
-                                      <div>
-                                        <svg
-                                          width={16}
-                                          height={16}
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <g fill="none" fill-rule="evenodd">
-                                            <path d="M0 0h24v24H0z"></path>
-                                            <rect
-                                              width="14"
-                                              height="1"
-                                              x="5"
-                                              y="6"
-                                              fill="currentColor"
-                                              rx="0.5"
-                                            ></rect>
-                                            <path
-                                              fill="currentColor"
-                                              d="M10 9h1v8h-1V9zm3 0h1v8h-1V9z"
-                                            ></path>
-                                            <path
-                                              stroke="currentColor"
-                                              d="M17.5 6.5h-11V18A1.5 1.5 0 0 0 8 19.5h8a1.5 1.5 0 0 0 1.5-1.5V6.5zm-9 0h7V5A1.5 1.5 0 0 0 14 3.5h-4A1.5 1.5 0 0 0 8.5 5v1.5z"
-                                            ></path>
-                                          </g>
-                                        </svg>
-                                      </div>
-                                      <div>Delete</div>
-                                    </div>
-                                    <div className="second-content-popover">
-                                      <div>
-                                        <kbd class="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
-                                          ⌘
-                                        </kbd>
-                                      </div>
-                                      <div>
-                                        <kbd class="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
-                                          ⌫
-                                        </kbd>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </Popover>
+                              </div>
+                              <div>{task.task}</div>
                             </div>
-
                             <div
                               className={`category-${task.category.toLowerCase()}`}
                             >
@@ -1603,60 +1913,13 @@ function HomePage() {
                                 task.category.slice(1)}
                             </div>
                           </div>
-                        </div>
-                        <div
-                          style={{
-                            borderBottom: "1px solid rgb(231,231,231)",
-                          }}
-                        ></div>
-                      </div>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {completedTask.map((task, index) => (
-                      <div key={index} className="last-section-task-details">
-                        <div className="task-wrapper">
-                          <div>
-                            <div>
-                              <svg
-                                width={18}
-                                height={18}
-                                version="1.1"
-                                viewBox="0 0 25 25"
-                              >
-                                <title />
-                                <desc />
-                                <defs />
-                                <g
-                                  fillRule="evenodd"
-                                  stroke="none"
-                                  strokeWidth="1"
-                                >
-                                  <g fill="#5aed7c">
-                                    <path
-                                      d="M12.5,25 C19.4035594,25 25,19.4035594 25,12.5 C25,5.59644063 19.4035594,0 12.5,0 C5.59644063,0 0,5.59644063 0,12.5 C0,19.4035594 5.59644063,25 12.5,25 Z M9.5007864,16.7921068 L5.37867966,12.6700001 L4.67157288,13.3771069 L9.62132034,18.3268543 L10.3284271,17.6197475 L10.2078932,17.4992136 L20.1568542,7.55025253 L19.4497475,6.84314575 L9.5007864,16.7921068 Z"
-                                      id="Check-Circle"
-                                    />
-                                  </g>
-                                </g>
-                              </svg>
-                            </div>
-                            <div>{task.task}</div>
-                          </div>
                           <div
-                            className={`category-${task.category.toLowerCase()}`}
-                          >
-                            {task.category.charAt(0).toUpperCase() +
-                              task.category.slice(1)}
-                          </div>
+                            style={{
+                              borderBottom: "1px solid rgb(231,231,231)",
+                            }}
+                          ></div>
                         </div>
-                        <div
-                          style={{
-                            borderBottom: "1px solid rgb(231,231,231)",
-                          }}
-                        ></div>
-                      </div>
+                      </>
                     ))}
                   </>
                 )}
@@ -1668,4 +1931,4 @@ function HomePage() {
     </>
   );
 }
-export default HomePage;
+export default Dashboard;

@@ -11,6 +11,11 @@ const completedTaskSchema = new Schema(
       enum: ["completed"],
       default: "completed",
     },
+    taskId: {
+      type: Schema.Types.ObjectId,
+      ref: "Task",
+      required: true,
+    },
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -28,6 +33,10 @@ const completedTaskSchema = new Schema(
     endDate: {
       type: Date,
       required: false,
+    },
+    deleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

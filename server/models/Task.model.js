@@ -29,6 +29,14 @@ const taskSchema = new Schema(
       type: Date,
       required: false,
     },
+    deleted: {
+      type: Boolean,
+      default: false,
+    },
+    completed: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

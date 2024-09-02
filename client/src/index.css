@@ -312,6 +312,7 @@ body {
   right: 0;
   z-index: 1;
   border-radius: 16px;
+  transition: width 150ms cubic-bezier(0.4, 0, 1, 1);
 }
 
 .mid-section-last-grid-div {
@@ -452,6 +453,8 @@ body {
   flex-direction: column;
   justify-content: space-between;
   font-size: 14px;
+  height: 50px;
+  overflow: hidden;
 }
 
 .last-section-task-details div {
@@ -636,7 +639,8 @@ input:focus {
   align-items: center !important;
 }
 
-.first-content-priority-options {
+.first-content-priority-options,
+.logout-option {
   font-size: 13px;
 }
 
@@ -671,18 +675,116 @@ input:focus {
 
 .delete-option,
 .edit-option,
-.priority-option {
+.priority-option,
+.logout-option {
   padding: 12px;
 }
 .delete-option:hover,
-.edit-option:hover {
+.edit-option:hover,
+.logout-option:hover {
   background-color: #f7f6ff;
   color: #5757ff;
   transition: background-color 0.25s ease 0s, color 0.25s ease 0s;
 }
 
-/* cursor: "pointer",
-backgroundColor: myTaskHeadHovered && "#f7f6ff",
-color: myTaskHeadHovered && "#5757ff",
-transition:
-"background-color 0.25s ease 0s, color 0.25s ease 0s", */
+.logout-option-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-image-place-holder {
+  width: 32px;
+  height: 32px;
+}
+.profile-image-place-holder-variant-two {
+  width: 40px;
+  height: 40px;
+}
+
+.profile-image-place-holder,
+.profile-image-place-holder-variant-two {
+  background-color: #5757ff;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+}
+
+/* delete task animation */
+
+.ant-message {
+  bottom: 20px !important;
+  top: initial !important;
+  width: 100%;
+}
+.ant-message-custom-content span:last-child {
+  width: 100% !important;
+}
+.custom-message-antd {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 10px;
+  padding: 12px 0px;
+}
+.anticon-check-circle {
+  display: none !important;
+}
+.task-deleted-message .ant-message-notice-content,
+.task-completed-message .ant-message-notice-content {
+  /* color: white;
+  background-color: rgba(5, 8, 15, 0.85) !important; */
+  background-color: white !important;
+  color: black !important;
+  box-shadow: 0 0 15px rgba(101, 119, 134, 0.2),
+    0 0 5px 3px rgba(101, 119, 134, 0.15) !important;
+  border: none !important;
+  border-radius: initial !important;
+  max-width: 140px;
+  width: 100%;
+  border-radius: 5px !important;
+  font-size: 14px !important;
+  font-weight: 500;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.task-completed-message .ant-message-notice-content {
+  max-width: 160px;
+}
+@media (max-width: 768px) {
+  .ant-message {
+    bottom: -8px !important;
+    top: initial !important;
+    min-width: 100vw !important;
+  }
+  .task-deleted-message .ant-message-notice-content,
+  .task-completed-message .ant-message-notice-content {
+    min-width: 100% !important;
+  }
+
+  .custom-message-antd {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    min-width: fit-content !important;
+  }
+  .task-completed-message .ant-message-notice-content {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+}
+
+.clicked_animate {
+  transition: transform 150ms cubic-bezier(0.4, 0, 1, 1);
+  transform: scale(1.2);
+}
+
+.clicked_animate.reset {
+  transform: scale(1);
+}
