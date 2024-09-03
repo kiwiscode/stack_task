@@ -1,9 +1,11 @@
 import { message } from "antd";
+import { useContext } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { ThemeContext } from "../Context/ThemeContext";
 
 export const useAntdMessageHandler = () => {
   const [messageApi, contextHolder] = message.useMessage();
-
+  const { themeName } = useContext(ThemeContext);
   const showTaskDeletedMessage = (customMessage, duration, onClickCallback) => {
     const key = uuidv4();
 
@@ -31,7 +33,10 @@ export const useAntdMessageHandler = () => {
         </div>
       ),
       duration,
-      className: "task-deleted-message",
+      className:
+        themeName === "dark-theme"
+          ? "task-deleted-message-dark-theme"
+          : "task-deleted-message",
       key,
     });
   };
@@ -66,7 +71,10 @@ export const useAntdMessageHandler = () => {
         </div>
       ),
       duration,
-      className: "task-completed-message",
+      className:
+        themeName === "dark-theme"
+          ? "task-completed-message-dark-theme"
+          : "task-completed-message",
       key,
     });
   };

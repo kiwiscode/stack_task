@@ -18,6 +18,11 @@ body {
   box-sizing: border-box;
 }
 
+.light-theme,
+.dark-theme {
+  transition: background 0.2s linear;
+}
+
 .mt-40 {
   margin-top: 40px;
 }
@@ -45,6 +50,7 @@ body {
   position: relative;
   border-right: 2px solid rgb(231, 231, 231);
 }
+
 .main-container .content-container {
   grid-column: span 9;
 }
@@ -73,11 +79,6 @@ body {
   gap: 12px;
   margin-top: 20px;
   cursor: pointer;
-}
-
-.task-details-container {
-  max-height: 160px;
-  overflow-y: auto;
 }
 
 .left-side-nav-box {
@@ -138,13 +139,6 @@ body {
   align-items: center;
 }
 
-@media (max-width: 768px) {
-  .content-container-top-section {
-    margin-top: 10px;
-    border-top: 1px solid rgb(231, 231, 231);
-  }
-}
-
 .task-search-bar {
   width: 100%;
 }
@@ -202,6 +196,25 @@ body {
   min-width: 100px;
   cursor: pointer;
 }
+.clear-all-completed-tasks {
+  width: 100%;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.clear-all-completed-tasks button {
+  height: 36px;
+  background-color: #5558fd;
+  color: white;
+  font-size: 13px;
+  border: none;
+  outline-style: none;
+  border-radius: 5px;
+  min-width: 100px;
+  cursor: pointer;
+}
 
 .pp {
   display: flex;
@@ -230,10 +243,6 @@ body {
   background-color: green;
   border-radius: 50%;
   border: 1px solid white;
-}
-
-.content-container-mid-section {
-  background-color: #fbfbfd;
 }
 
 .current-date-mid-section {
@@ -453,7 +462,6 @@ body {
   flex-direction: column;
   justify-content: space-between;
   font-size: 14px;
-  height: 50px;
   overflow: hidden;
 }
 
@@ -499,7 +507,7 @@ body {
   background-color: #abcce4;
 }
 .category-pet {
-  padding: 6px;
+  padding: 6px 12px;
   border-radius: 9999px;
   background-color: #8dd8c7;
 }
@@ -579,7 +587,9 @@ body {
   top: 27% !important;
   left: 12px !important;
 }
-
+.default-value-input {
+  border-radius: 5px;
+}
 /* for chrome Remove default text/placeholder from date input */
 .default-value-input[type="date"]:in-range::-webkit-datetime-edit-year-field,
 .default-value-input[type="date"]:in-range::-webkit-datetime-edit-month-field,
@@ -613,18 +623,8 @@ input::placeholder {
   font-size: 12px;
 }
 input:focus {
-  border: 1px solid #5558fd;
-  transition: border 0.25s ease 0s;
-}
-
-.popover-material-ui-light-theme .MuiPaper-root {
-  background-color: white !important;
-  overflow-y: hidden !important;
-  box-shadow: 0 0 15px rgba(101, 119, 134, 0.2),
-    0 0 5px 3px rgba(101, 119, 134, 0.15) !important;
-  /* padding: 10px; */
-  border-radius: 5px !important;
-  min-width: 200px;
+  border: 1px solid #5558fd !important;
+  transition: border 0.25s ease 0s !important;
 }
 
 .content-wrapper {
@@ -754,8 +754,13 @@ input:focus {
   padding: 0 !important;
   margin: 0 !important;
 }
+
 .task-completed-message .ant-message-notice-content {
   max-width: 160px;
+}
+.task-completed-message .ant-message-notice-content {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
 }
 @media (max-width: 768px) {
   .ant-message {
@@ -767,16 +772,16 @@ input:focus {
   .task-completed-message .ant-message-notice-content {
     min-width: 100% !important;
   }
+  .task-deleted-message-dark-theme .ant-message-notice-content,
+  .task-completed-message-dark-theme .ant-message-notice-content {
+    min-width: 100% !important;
+  }
 
   .custom-message-antd {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
     min-width: fit-content !important;
-  }
-  .task-completed-message .ant-message-notice-content {
-    padding-left: 10px !important;
-    padding-right: 10px !important;
   }
 }
 
@@ -787,4 +792,227 @@ input:focus {
 
 .clicked_animate.reset {
   transform: scale(1);
+}
+
+/* theme settings */
+.navigation-bar-left-side.light-theme {
+  background-color: white;
+}
+.navigation-bar-left-side.dark-theme {
+  background-color: #161d28;
+  border-right: 2px solid #161d28;
+}
+.search-bar.dark-theme input,
+.add-new-task-input.dark-theme {
+  color: white;
+  background-color: #091017;
+  border: 1px solid rgba(101, 119, 134, 0.2);
+}
+.search-bar.dark-theme input::placeholder {
+  color: grey;
+}
+
+.content-container-top-section.dark-theme {
+  background-color: #161d28;
+  display: flex;
+  gap: 12px;
+  padding: 24px;
+  border-bottom: 1px solid rgb(231, 231, 231);
+  align-items: center;
+}
+
+.nav-items-expandable.dark-theme {
+  color: grey;
+}
+
+.content-container-mid-section.light-theme {
+  background-color: #fbfbfd;
+}
+
+.content-container-mid-section.dark-theme {
+  background-color: #091017;
+}
+
+.content-container-top-section.dark-theme {
+  border-bottom: 1px solid #161d28;
+}
+
+@media (max-width: 768px) {
+  .content-container-top-section {
+    margin-top: 10px;
+    border-top: 1px solid rgb(231, 231, 231);
+  }
+
+  .content-container-top-section.dark-theme {
+    border-bottom: 1px solid #161d28;
+    border-top: 1px solid #161d28;
+  }
+
+  .navigation-bar-left-side {
+    border-right: none !important;
+  }
+}
+
+.second-content-greeting-section.dark-theme {
+  color: white;
+}
+
+.completed-task-loading-bar.dark-theme {
+  background-color: #23272f;
+  border: 1px solid #23272f;
+}
+
+.default-value-input.dark-theme {
+  background-color: #23272f;
+  border: 1px solid #23272f !important;
+}
+
+.input-label.dark-theme {
+  color: grey !important;
+}
+
+.mid-section-last-grid-div.dark-theme .first-box,
+.mid-section-last-grid-div.dark-theme .second-box,
+.mid-section-last-grid-div.dark-theme .third-box {
+  background-color: #23272f;
+}
+
+.content-container-last-section.dark-theme {
+  padding: 0px 20px;
+  background-color: #091017;
+}
+
+.last-section-content.dark-theme {
+  background-color: #091017;
+  padding: 20px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(101, 119, 134, 0.2);
+  border-radius: 5px;
+}
+
+.current-date-mid-section.dark-theme {
+  color: white;
+}
+
+.to-do.dark-theme {
+  background-color: #eeac12;
+}
+.in-progress.dark-theme {
+  background-color: #e564f6;
+}
+.completed.dark-theme {
+  background-color: #41e143;
+}
+.content-container.dark-theme {
+  background-color: #091017;
+}
+.percentage-information.dark-theme {
+  background-color: #091017;
+  color: green;
+}
+.category-work.dark-theme {
+  background-color: #f3d542;
+  font-weight: 600;
+}
+.category-personal.dark-theme {
+  background-color: #ef5ab9;
+  font-weight: 600;
+}
+.category-family.dark-theme {
+  background-color: #34a1e5;
+  font-weight: 600;
+}
+.category-pet.dark-theme {
+  background-color: #38bd95;
+  font-weight: 600;
+}
+
+.work-box.dark-theme {
+  background-color: #f3d542;
+}
+.personal-box.dark-theme {
+  background-color: #ef5ab9;
+}
+.family-box.dark-theme {
+  background-color: #34a1e5;
+}
+.pet-box.dark-theme {
+  background-color: #38bd95;
+}
+
+.popover-material-ui-light-theme .MuiPaper-root {
+  background-color: white !important;
+  overflow-y: hidden !important;
+  box-shadow: 0 0 15px rgba(101, 119, 134, 0.2),
+    0 0 5px 3px rgba(101, 119, 134, 0.15) !important;
+  border-radius: 5px !important;
+  min-width: 200px;
+}
+
+.popover-material-ui-dark-theme .MuiPaper-root {
+  background-color: black !important;
+  overflow-y: hidden !important;
+  filter: drop-shadow(rgb(51, 54, 57) 1px -1px 1px) !important;
+  border-radius: 5px !important;
+  min-width: 200px;
+  color: grey;
+}
+
+.delete-option-dark-theme:hover,
+.edit-option-dark-theme:hover,
+.logout-option-dark-theme:hover {
+  background-color: #23272f;
+  color: #5757ff;
+  transition: background-color 0.25s ease 0s, color 0.25s ease 0s;
+}
+
+.task-deleted-message-dark-theme .ant-message-notice-content,
+.task-completed-message-dark-theme .ant-message-notice-content {
+  background-color: #091017 !important;
+  color: grey !important;
+  box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 15px,
+    rgba(255, 255, 255, 0.15) 0px 0px 3px 1px !important;
+  border: none !important;
+  border-radius: initial !important;
+  max-width: 140px;
+  width: 100%;
+  border-radius: 5px !important;
+  font-size: 14px !important;
+  font-weight: 500;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.task-completed-message-dark-theme .ant-message-notice-content {
+  max-width: 160px;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+.add-new-task-modal-content.dark-theme {
+  color: white;
+}
+
+.add-new-task-modal-content.dark-theme input::placeholder {
+  color: grey;
+}
+
+.add-new-task-modal-content.dark-theme input {
+  /* display: none; */
+  color: white;
+  background-color: #091017;
+  border: 1px solid rgba(101, 119, 134, 0.2);
+}
+
+.add-new-task-modal-content.dark-theme select {
+  color: white;
+  background-color: #091017;
+  border: 1px solid rgba(101, 119, 134, 0.2);
+}
+
+.btn-wrapper-add-new-task-modal.dark-theme button:first-child {
+  background-color: transparent;
+  color: white;
+  font-weight: 600;
+  border: 1px solid rgba(101, 119, 134, 0.2);
 }

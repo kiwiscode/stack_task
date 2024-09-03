@@ -10,14 +10,26 @@ import { styled } from "@mui/material/styles";
 import Tooltip, { tooltipClasses } from "@mui/material/Tooltip";
 import Lottie from "lottie-react";
 import animationData from "../assets/loading-animation/loading-animation.json";
+import clearAnimationData from "../assets/clear-animation/celar-animation-3.json";
 import { useAntdMessageHandler } from "../utils/useAntdMessageHandler";
 import completedTaskSound from "../sounds/todo-completed-sound.mp3";
+import { ThemeContext } from "../Context/ThemeContext";
 
 // when working on local version
 const API_URL = "http://localhost:3000";
 
 // when working on deployment version ???
 function Dashboard() {
+  const { themeName, toggleTheme } = useContext(ThemeContext);
+
+  const handleToggle = () => {
+    if (themeName === "light-theme") {
+      toggleTheme("dark-theme");
+    } else {
+      toggleTheme("light-theme");
+    }
+  };
+
   const { getToken, userInfo, logout, updateUser } = useContext(UserContext);
   const { showTaskDeletedMessage, showTaskCompletedMessage, contextHolder } =
     useAntdMessageHandler();
@@ -83,14 +95,20 @@ function Dashboard() {
 
   // hovered task item
   const [hoveredTodoTaskMoreBtn, setHoveredTodoTaskMoreBtn] = useState(null);
+  const [hoveredCompletedTodoTaskMoreBtn, setHoveredCompletedTodoTaskMoreBtn] =
+    useState(null);
 
   const [anchorElLogoutPopover, setAnchorElLogoutPopover] = useState(null);
   const [showLogoutPopover, setShowLogoutPopover] = useState(false);
   const [changingProfilePictureBar, setChangingProfilePictureBar] =
     useState(false);
   const [profileImage, setProfileImage] = useState("");
-  const [toRemoveTask, setToRemoveTask] = useState(null);
   const [completedBtnAnimationActive, setCompletedBtnAnimationActive] =
+    useState(false);
+  const [undoCompletedBtnAnimationActive, setUndoCompletedBtnAnimationActive] =
+    useState(false);
+
+  const [clearAllCompletedProcessing, setClearAllCompletedProcessing] =
     useState(false);
 
   const handleShowLogoutPopover = (event) => {
@@ -219,7 +237,7 @@ function Dashboard() {
   };
 
   // complete the task softly
-  const taskSoftCompletion = async (taskToDelete, index, task) => {
+  const taskSoftCompletion = async (taskToDelete, index) => {
     audio.play();
     setCompletedBtnAnimationActive(index);
     try {
@@ -298,6 +316,7 @@ function Dashboard() {
         }
       );
 
+      setShowCompletedTasks(false);
       setNewTaskFormData({
         task: "",
         status: "todo",
@@ -465,6 +484,99 @@ function Dashboard() {
       console.error("error:", error);
     }
   };
+  const completedTaskSoftDeletion = async (taskToDelete, task) => {
+    try {
+      await axios.patch(
+        `${API_URL}/task/completed-tasks/delete/${taskToDelete}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+
+      getAllCompletedTasks();
+
+      const undoTask = async (req, res) => {
+        try {
+          await axios.patch(
+            `${API_URL}/task/completed-tasks/undo/${taskToDelete}`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${getToken()}`,
+              },
+            }
+          );
+
+          getAllCompletedTasks();
+        } catch (error) {
+          console.error("error:", error);
+        }
+      };
+
+      showTaskDeletedMessage("Task deleted", 3, undoTask);
+    } catch (error) {
+      console.error("error:", error);
+    }
+  };
+
+  // clear all completed tasks
+  const clearAllCompletedTasks = async () => {
+    setClearAllCompletedProcessing(true);
+    try {
+      await axios.delete(
+        `${API_URL}/task/delete-completed-tasks/${userInfo._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+
+      setTimeout(() => {
+        getAllTasks();
+        getAllInProgressTasks();
+        getAllCompletedTasks();
+      }, 6000);
+
+      setTimeout(() => {
+        setClearAllCompletedProcessing(false);
+      }, 8000);
+    } catch (error) {
+      console.error("error:", error);
+    }
+  };
+
+  // change completed task status
+  const hardUndoCompletedTask = async (taskToUndoCompleted, index) => {
+    audio.play();
+    setUndoCompletedBtnAnimationActive(index);
+    try {
+      await axios.post(
+        `${API_URL}/task/undo-completed/${taskToUndoCompleted}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+
+      setTimeout(() => {
+        getAllTasks();
+        getAllInProgressTasks();
+        getAllCompletedTasks();
+      }, 300);
+
+      setTimeout(() => {
+        setUndoCompletedBtnAnimationActive(null);
+      }, 300);
+    } catch (error) {
+      console.error("error:", error);
+    }
+  };
 
   return (
     <>
@@ -489,7 +601,10 @@ function Dashboard() {
           sx={{
             "& > .MuiBackdrop-root": {
               opacity: "0.5 !important",
-              backgroundColor: "rgb(202, 205, 236)",
+              backgroundColor:
+                themeName === "dark-theme"
+                  ? "rgb(40, 44, 52)"
+                  : "rgb(202, 205, 236)",
               filter: "brightness(2.5)",
               margin: 0,
               padding: 0,
@@ -507,7 +622,7 @@ function Dashboard() {
               width: width <= 768 ? "98%" : 600,
               maxHeight: "95vh",
               height: width <= 768 && "95vh",
-              backgroundColor: "white",
+              backgroundColor: themeName === "dark-theme" ? "#091017" : "white",
               outlineStyle: "none",
               overflowY: "auto",
               boxShadow:
@@ -516,7 +631,11 @@ function Dashboard() {
           >
             <div>
               {/* Add new task content */}
-              <div className="add-new-task-modal-content">
+              <div
+                className={`add-new-task-modal-content ${
+                  themeName === "dark-theme" ? "dark-theme" : ""
+                }`}
+              >
                 <div className="task-modal-content-header">
                   <div>Create new task</div>
                   <div
@@ -534,14 +653,22 @@ function Dashboard() {
                         border: "none",
                         cursor: "pointer",
                         borderRadius: "3px",
-                        border: "1px solid rgb(231,231,231)",
+                        border:
+                          themeName === "dark-theme"
+                            ? "1px solid rgba(101, 119, 134, 0.2)"
+                            : "1px solid rgb(231,231,231)",
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
                         padding: "4px",
                       }}
                     >
-                      <svg widths={12} height={12} viewBox="0 0 512 512">
+                      <svg
+                        fill={themeName === "dark-theme" && "white"}
+                        widths={12}
+                        height={12}
+                        viewBox="0 0 512 512"
+                      >
                         <path d="M437.5,386.6L306.9,256l130.6-130.6c14.1-14.1,14.1-36.8,0-50.9c-14.1-14.1-36.8-14.1-50.9,0L256,205.1L125.4,74.5  c-14.1-14.1-36.8-14.1-50.9,0c-14.1,14.1-14.1,36.8,0,50.9L205.1,256L74.5,386.6c-14.1,14.1-14.1,36.8,0,50.9  c14.1,14.1,36.8,14.1,50.9,0L256,306.9l130.6,130.6c14.1,14.1,36.8,14.1,50.9,0C451.5,423.4,451.5,400.6,437.5,386.6z" />
                       </svg>
                     </button>
@@ -616,7 +743,11 @@ function Dashboard() {
                   </div>
                 </div>
                 <div className="mt-40"></div>
-                <div className="btn-wrapper-add-new-task-modal">
+                <div
+                  className={`btn-wrapper-add-new-task-modal ${
+                    themeName === "dark-theme" ? "dark-theme" : ""
+                  }`}
+                >
                   <button onClick={closeAddTaskModal}>Cancel</button>
                   <button onClick={addTask}>Add task</button>
                 </div>
@@ -631,12 +762,20 @@ function Dashboard() {
         </Modal>
 
         {/* left side navigation bar */}
-        <div className="navigation-bar-left-side">
+        <div
+          className={`navigation-bar-left-side ${
+            themeName === "dark-theme" ? "dark-theme" : "light-theme"
+          }`}
+        >
           <div className="left-side-nav-bar-content">
             <div className="mt-10"></div>
-            <div className="logo">Logo</div>
+            {/* <div className="logo">Logo</div> */}
             <div className="mt-30"></div>
-            <div className="nav-items-expandable">
+            <div
+              className={`nav-items-expandable ${
+                themeName === "dark-theme" ? "dark-theme" : "light-theme"
+              }`}
+            >
               <div className="expandable-nav-my-tasks">
                 <div
                   onClick={() => toggleExpand("my-tasks")}
@@ -645,7 +784,13 @@ function Dashboard() {
                   className="task-header hover-bg-effect-task-header"
                   style={{
                     cursor: "pointer",
-                    backgroundColor: myTaskHeadHovered && "#f7f6ff",
+                    backgroundColor:
+                      myTaskHeadHovered && themeName === "dark-theme"
+                        ? "rgb(0,0,0,0.1)"
+                        : myTaskHeadHovered && themeName === "light-theme"
+                        ? "#f7f6ff"
+                        : "",
+
                     color: myTaskHeadHovered && "#5757ff",
                     transition:
                       "background-color 0.25s ease 0s, color 0.25s ease 0s",
@@ -665,22 +810,22 @@ function Dashboard() {
                       }}
                     >
                       <svg
+                        fill={
+                          myTaskHeadHovered && themeName === "light-theme"
+                            ? "#5757ff"
+                            : myTaskHeadHovered && themeName === "dark-theme"
+                            ? "#5757ff"
+                            : themeName === "dark-theme"
+                            ? "grey"
+                            : "black"
+                        }
                         xmlns="http://www.w3.org/2000/svg"
-                        fill={"none"}
-                        height="18"
-                        viewBox="0 0 24 24"
-                        width="18"
+                        height="18px"
+                        width="18px"
+                        viewBox="0 0 48 48"
                       >
-                        <path
-                          style={{
-                            transition: "stroke 0.25s ease 0s",
-                          }}
-                          d="M10 9V14C10 15.1046 10.8954 16 12 16V16C13.1046 16 14 15.1046 14 14V7C14 4.79086 12.2091 3 10 3V3C7.79086 3 6 4.79086 6 7V15C6 18.3137 8.68629 21 12 21V21C15.3137 21 18 18.3137 18 15V5"
-                          stroke={myTaskHeadHovered ? "#5757ff" : "black"}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                        />
+                        <path d="M33 12v23c0 4.42-3.58 8-8 8s-8-3.58-8-8v-25c0-2.76 2.24-5 5-5s5 2.24 5 5v21c0 1.1-.89 2-2 2-1.11 0-2-.9-2-2v-19h-3v19c0 2.76 2.24 5 5 5s5-2.24 5-5v-21c0-4.42-3.58-8-8-8s-8 3.58-8 8v25c0 6.08 4.93 11 11 11s11-4.92 11-11v-23h-3z" />
+                        <path d="M0 0h48v48h-48z" fill="none" />
                       </svg>
                     </span>
                     <span>My Tasks</span>
@@ -694,7 +839,15 @@ function Dashboard() {
                       style={{
                         transition: "fill 0.25s ease 0s",
                       }}
-                      fill={myTaskHeadHovered ? "#5757ff" : "black"}
+                      fill={
+                        myTaskHeadHovered && themeName === "light-theme"
+                          ? "#5757ff"
+                          : myTaskHeadHovered && themeName === "dark-theme"
+                          ? "#5757ff"
+                          : themeName === "dark-theme"
+                          ? "grey"
+                          : "black"
+                      }
                       width={18}
                       height={18}
                       xmlns="http://www.w3.org/2000/svg"
@@ -724,7 +877,11 @@ function Dashboard() {
                     }}
                     className="my-task-parent-individual-div"
                   >
-                    <div className="left-side-nav-box work-box">
+                    <div
+                      className={`left-side-nav-box work-box ${
+                        themeName === "dark-theme" ? "dark-theme" : ""
+                      }`}
+                    >
                       {showMyTasks === "work" && (
                         <svg height="10px" viewBox="0 0 18 15" width="10px">
                           <title />
@@ -768,7 +925,11 @@ function Dashboard() {
                     }}
                     className="my-task-parent-individual-div"
                   >
-                    <div className="left-side-nav-box personal-box">
+                    <div
+                      className={`left-side-nav-box personal-box ${
+                        themeName === "dark-theme" ? "dark-theme" : ""
+                      }`}
+                    >
                       {showMyTasks === "personal" && (
                         <svg height="10px" viewBox="0 0 18 15" width="10px">
                           <title />
@@ -812,7 +973,11 @@ function Dashboard() {
                     }}
                     className="my-task-parent-individual-div"
                   >
-                    <div className="left-side-nav-box family-box">
+                    <div
+                      className={`left-side-nav-box family-box ${
+                        themeName === "dark-theme" ? "dark-theme" : ""
+                      }`}
+                    >
                       {" "}
                       {showMyTasks === "family" && (
                         <svg height="10px" viewBox="0 0 18 15" width="10px">
@@ -857,7 +1022,11 @@ function Dashboard() {
                     }}
                     className="my-task-parent-individual-div"
                   >
-                    <div className="left-side-nav-box pet-box">
+                    <div
+                      className={`left-side-nav-box pet-box ${
+                        themeName === "dark-theme" ? "dark-theme" : ""
+                      }`}
+                    >
                       {" "}
                       {showMyTasks === "pet" && (
                         <svg height="10px" viewBox="0 0 18 15" width="10px">
@@ -902,7 +1071,12 @@ function Dashboard() {
                   className="task-header hover-bg-effect-task-header"
                   style={{
                     cursor: "pointer",
-                    backgroundColor: inboxHeadHovered && "#f7f6ff",
+                    backgroundColor:
+                      inboxHeadHovered && themeName === "dark-theme"
+                        ? "rgb(0,0,0,0.1)"
+                        : inboxHeadHovered && themeName === "light-theme"
+                        ? "#f7f6ff"
+                        : "",
                     color: inboxHeadHovered && "#5757ff",
                     transition:
                       "background-color 0.25s ease 0s, color 0.25s ease 0s",
@@ -925,7 +1099,15 @@ function Dashboard() {
                         style={{
                           transition: "fill 0.25s ease 0s",
                         }}
-                        fill={inboxHeadHovered ? "#5757ff" : "black"}
+                        fill={
+                          inboxHeadHovered && themeName === "light-theme"
+                            ? "#5757ff"
+                            : inboxHeadHovered && themeName === "dark-theme"
+                            ? "#5757ff"
+                            : themeName === "dark-theme"
+                            ? "grey"
+                            : "black"
+                        }
                         width={18}
                         height={18}
                         xmlns="http://www.w3.org/2000/svg"
@@ -945,7 +1127,15 @@ function Dashboard() {
                       style={{
                         transition: "fill 0.25s ease 0s",
                       }}
-                      fill={inboxHeadHovered ? "#5757ff" : "black"}
+                      fill={
+                        inboxHeadHovered && themeName === "light-theme"
+                          ? "#5757ff"
+                          : inboxHeadHovered && themeName === "dark-theme"
+                          ? "#5757ff"
+                          : themeName === "dark-theme"
+                          ? "grey"
+                          : "black"
+                      }
                       width={18}
                       height={18}
                       xmlns="http://www.w3.org/2000/svg"
@@ -981,7 +1171,12 @@ function Dashboard() {
                   className="task-header hover-bg-effect-task-header"
                   style={{
                     cursor: "pointer",
-                    backgroundColor: meetingsHeadHovered && "#f7f6ff",
+                    backgroundColor:
+                      meetingsHeadHovered && themeName === "dark-theme"
+                        ? "rgb(0,0,0,0.1)"
+                        : meetingsHeadHovered && themeName === "light-theme"
+                        ? "#f7f6ff"
+                        : "",
                     color: meetingsHeadHovered && "#5757ff",
                     transition:
                       "background-color 0.25s ease 0s, color 0.25s ease 0s",
@@ -1004,7 +1199,15 @@ function Dashboard() {
                         style={{
                           transition: "fill 0.25s ease 0s",
                         }}
-                        fill={meetingsHeadHovered ? "#5757ff" : "black"}
+                        fill={
+                          meetingsHeadHovered && themeName === "light-theme"
+                            ? "#5757ff"
+                            : meetingsHeadHovered && themeName === "dark-theme"
+                            ? "#5757ff"
+                            : themeName === "dark-theme"
+                            ? "grey"
+                            : "black"
+                        }
                         width={18}
                         height={18}
                         xmlns="http://www.w3.org/2000/svg"
@@ -1032,7 +1235,15 @@ function Dashboard() {
                       style={{
                         transition: "fill 0.25s ease 0s",
                       }}
-                      fill={meetingsHeadHovered ? "#5757ff" : "black"}
+                      fill={
+                        meetingsHeadHovered && themeName === "light-theme"
+                          ? "#5757ff"
+                          : meetingsHeadHovered && themeName === "dark-theme"
+                          ? "#5757ff"
+                          : themeName === "dark-theme"
+                          ? "grey"
+                          : "black"
+                      }
                       width={18}
                       height={18}
                       xmlns="http://www.w3.org/2000/svg"
@@ -1068,7 +1279,12 @@ function Dashboard() {
                   className="task-header hover-bg-effect-task-header"
                   style={{
                     cursor: "pointer",
-                    backgroundColor: settingsHeadHovered && "#f7f6ff",
+                    backgroundColor:
+                      settingsHeadHovered && themeName === "dark-theme"
+                        ? "rgb(0,0,0,0.1)"
+                        : settingsHeadHovered && themeName === "light-theme"
+                        ? "#f7f6ff"
+                        : "",
                     color: settingsHeadHovered && "#5757ff",
                     transition:
                       "background-color 0.25s ease 0s, color 0.25s ease 0s",
@@ -1091,7 +1307,15 @@ function Dashboard() {
                         style={{
                           transition: "fill 0.25s ease 0s",
                         }}
-                        fill={settingsHeadHovered ? "#5757ff" : "black"}
+                        fill={
+                          settingsHeadHovered && themeName === "light-theme"
+                            ? "#5757ff"
+                            : settingsHeadHovered && themeName === "dark-theme"
+                            ? "#5757ff"
+                            : themeName === "dark-theme"
+                            ? "grey"
+                            : "black"
+                        }
                         width={18}
                         height={18}
                         xmlns="http://www.w3.org/2000/svg"
@@ -1115,7 +1339,15 @@ function Dashboard() {
                       style={{
                         transition: "fill 0.25s ease 0s",
                       }}
-                      fill={settingsHeadHovered ? "#5757ff" : "black"}
+                      fill={
+                        settingsHeadHovered && themeName === "light-theme"
+                          ? "#5757ff"
+                          : settingsHeadHovered && themeName === "dark-theme"
+                          ? "#5757ff"
+                          : themeName === "dark-theme"
+                          ? "grey"
+                          : "black"
+                      }
                       width={18}
                       height={18}
                       xmlns="http://www.w3.org/2000/svg"
@@ -1133,9 +1365,46 @@ function Dashboard() {
                     maxHeight: expandedItem === "settings" ? "20px" : "0px",
                     overflow: "hidden",
                     transition: "max-height 0.25s ease-out",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
                   <div>Theme</div>
+                  <div>
+                    {themeName === "dark-theme" ? (
+                      <svg
+                        onClick={handleToggle}
+                        width={18}
+                        height={18}
+                        style={{
+                          cursor: "pointer",
+                          display: "initial",
+                        }}
+                        fill={"grey"}
+                        class="moon-icon"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"></path>
+                      </svg>
+                    ) : (
+                      <svg
+                        onClick={handleToggle}
+                        style={{
+                          cursor: "pointer",
+                          display: "initial",
+                        }}
+                        width={18}
+                        height={18}
+                        fill="rgb(28, 28, 28"
+                        className="sun-icon"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"></path>
+                      </svg>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1144,18 +1413,16 @@ function Dashboard() {
           <div
             className="copyright-info"
             style={{
-              bottom: 0,
-              left: 0,
-              position: "absolute",
               textAlign: "center",
               pointerEvents: "none",
               width: "100%",
-              backgroundColor: "yellow",
               height: "32px",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              backgroundColor: "white",
+              bottom: 0,
+              left: 0,
+              position: "absolute",
             }}
           >
             <div
@@ -1172,16 +1439,29 @@ function Dashboard() {
           </div>{" "}
         </div>
         {/* content container */}
-        <div className="content-container">
-          <div className="content-container-top-section">
+        <div
+          className={`content-container ${
+            themeName === "dark-theme" ? "dark-theme" : "light-theme"
+          }`}
+        >
+          <div
+            className={`content-container-top-section ${
+              themeName === "dark-theme" ? "dark-theme" : "light-theme"
+            }`}
+          >
             <div className="task-search-bar">
-              <div className="search-bar">
+              <div
+                className={`search-bar ${
+                  themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                }`}
+              >
                 <input
                   onChange={(e) => setFilterString(e.target.value)}
                   type="text"
                   placeholder="Search a task here"
                 />
                 <svg
+                  fill={themeName === "dark-theme" ? "white" : "black"}
                   width={18}
                   height={18}
                   className="input-search-icon"
@@ -1263,7 +1543,9 @@ function Dashboard() {
                 </svg>
                 {/* popover here !!! */}
                 <Popover
-                  className="popover-material-ui-light-theme"
+                  className={`popover-material-ui-${
+                    themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                  }`}
                   open={showLogoutPopover}
                   anchorEl={anchorElLogoutPopover}
                   onClose={handleCloseLogoutPopover}
@@ -1276,7 +1558,11 @@ function Dashboard() {
                     onClick={handleLogout}
                     className="popover-content-details"
                   >
-                    <div className="logout-option-wrapper logout-option pointer">
+                    <div
+                      className={`logout-option-wrapper logout-option logout-option-${
+                        themeName === "dark-theme" ? "dark-theme" : ""
+                      } pointer `}
+                    >
                       <div
                         style={{
                           display: "flex",
@@ -1303,13 +1589,25 @@ function Dashboard() {
               {/* logout popover finish to check */}
             </div>
           </div>
-          <div className="content-container-mid-section">
-            <div className="current-date-mid-section ">
+          <div
+            className={`content-container-mid-section ${
+              themeName === "dark-theme" ? "dark-theme" : "light-theme"
+            }`}
+          >
+            <div
+              className={`current-date-mid-section ${
+                themeName === "dark-theme" ? "dark-theme" : "light-theme"
+              }`}
+            >
               {getDayStr()}, {getMonthStr()} {date}
             </div>
             <div className="greeting-user-section">
               <div className="first-content-greeting-section"></div>
-              <div className="second-content-greeting-section">
+              <div
+                className={`second-content-greeting-section ${
+                  themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                }`}
+              >
                 {formatAMPM(today)}, {userInfo.name}
               </div>
               <div className="third-content-greeting-section">
@@ -1320,20 +1618,35 @@ function Dashboard() {
                   }}
                 >
                   <input
-                    className="mt-5 default-value-input"
+                    className={`mt-5 default-value-input ${
+                      themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                    }`}
                     type="date"
                     min={todaysDate}
                     max={todaysDate}
                   />
-                  <label htmlFor="date-input" className="input-label">
+                  <label
+                    className={`input-label ${
+                      themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                    }`}
+                    htmlFor="date-input"
+                  >
                     Today
                   </label>
                 </div>
               </div>
             </div>
             <div className="task-completed-info">
-              <span>{`${completedTask.length} tasks completed`}</span>
-              <div className="completed-task-loading-bar">
+              <span
+                style={{
+                  color: themeName === "dark-theme" && "grey",
+                }}
+              >{`${completedTask.length} tasks completed`}</span>
+              <div
+                className={`completed-task-loading-bar ${
+                  themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                }`}
+              >
                 <div
                   className="completed-task-loading-bar-inside"
                   style={{
@@ -1342,10 +1655,18 @@ function Dashboard() {
                 ></div>
               </div>
             </div>
-            <div className="mid-section-last-grid-div">
+            <div
+              className={`mid-section-last-grid-div ${
+                themeName === "dark-theme" ? "dark-theme" : "light-theme"
+              }`}
+            >
               <div className="first-box">
                 <div>
-                  <div className="icon-box to-do">
+                  <div
+                    className={`icon-box to-do ${
+                      themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                    }`}
+                  >
                     <svg
                       width={18}
                       height={18}
@@ -1364,7 +1685,14 @@ function Dashboard() {
                     </svg>
                   </div>
                   <div>
-                    <div className="f-w-bold">To do</div>
+                    <div
+                      className="f-w-bold"
+                      style={{
+                        color: themeName === "dark-theme" && "white",
+                      }}
+                    >
+                      To do
+                    </div>
                     <div className="number-detail fs-12">
                       {taskList.length
                         ? `${taskList.length} tasks`
@@ -1372,7 +1700,11 @@ function Dashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="percentage-information">
+                <div
+                  className={`percentage-information ${
+                    themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                  }`}
+                >
                   <span>
                     <svg
                       style={{
@@ -1380,7 +1712,7 @@ function Dashboard() {
                       }}
                       width={16}
                       height={16}
-                      fill="#004329"
+                      fill={themeName === "dark-theme" ? "green" : "#004329"}
                       id="Layer_1"
                       viewBox="0 0 512 512"
                     >
@@ -1392,7 +1724,11 @@ function Dashboard() {
               </div>
               <div className="second-box">
                 <div>
-                  <div className="icon-box in-progress">
+                  <div
+                    className={`icon-box in-progress ${
+                      themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                    }`}
+                  >
                     <svg
                       width={18}
                       height={18}
@@ -1407,7 +1743,14 @@ function Dashboard() {
                     </svg>
                   </div>
                   <div>
-                    <div className="f-w-bold">In Progress</div>
+                    <div
+                      style={{
+                        color: themeName === "dark-theme" && "white",
+                      }}
+                      className="f-w-bold"
+                    >
+                      In Progress
+                    </div>
                     <div className="number-detail fs-12">
                       {inProgressTaskList.length
                         ? `${inProgressTaskList.length} tasks`
@@ -1415,7 +1758,11 @@ function Dashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="percentage-information">
+                <div
+                  className={`percentage-information ${
+                    themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                  }`}
+                >
                   <span>
                     <svg
                       style={{
@@ -1423,7 +1770,7 @@ function Dashboard() {
                       }}
                       width={16}
                       height={16}
-                      fill="#004329"
+                      fill={themeName === "dark-theme" ? "green" : "#004329"}
                       id="Layer_1"
                       viewBox="0 0 512 512"
                     >
@@ -1435,7 +1782,11 @@ function Dashboard() {
               </div>
               <div className="third-box">
                 <div>
-                  <div className="icon-box completed">
+                  <div
+                    className={`icon-box completed ${
+                      themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                    }`}
+                  >
                     <svg height="18px" viewBox="0 0 20 21" width="18px">
                       <title />
                       <desc />
@@ -1460,7 +1811,14 @@ function Dashboard() {
                     </svg>
                   </div>
                   <div>
-                    <div className="f-w-bold">Completed</div>
+                    <div
+                      style={{
+                        color: themeName === "dark-theme" && "white",
+                      }}
+                      className="f-w-bold"
+                    >
+                      Completed
+                    </div>
                     <div className="number-detail fs-12">
                       {completedTask.length
                         ? `${completedTask.length} tasks`
@@ -1468,7 +1826,11 @@ function Dashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="percentage-information">
+                <div
+                  className={`percentage-information ${
+                    themeName === "dark-theme" ? "dark-theme" : "light-theme"
+                  }`}
+                >
                   <span>
                     <svg
                       style={{
@@ -1476,7 +1838,7 @@ function Dashboard() {
                       }}
                       width={16}
                       height={16}
-                      fill="#004329"
+                      fill={themeName === "dark-theme" ? "green" : "#004329"}
                       id="Layer_1"
                       viewBox="0 0 512 512"
                     >
@@ -1488,8 +1850,16 @@ function Dashboard() {
               </div>
             </div>
           </div>
-          <div className="content-container-last-section">
-            <div className="last-section-content">
+          <div
+            className={`content-container-last-section ${
+              themeName === "dark-theme" ? "dark-theme" : "light-theme"
+            }`}
+          >
+            <div
+              className={`last-section-content ${
+                themeName === "dark-theme" ? "dark-theme" : "light-theme"
+              }`}
+            >
               <div className="last-section-content-nav-bar">
                 <div>
                   <div>
@@ -1497,6 +1867,9 @@ function Dashboard() {
                       <div className="profile-container">
                         {userInfo.profilePicture ? (
                           <img
+                            style={{
+                              borderRadius: "50%",
+                            }}
                             src={userInfo.profilePicture}
                             alt="Profile"
                             width={40}
@@ -1511,27 +1884,62 @@ function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <div>
+                  <div
+                    style={{
+                      color: themeName === "dark-theme" && "white",
+                    }}
+                  >
                     {showCompletedTasks ? "Completed Tasks" : "My Tasks"}
                   </div>
                 </div>
                 {!showCompletedTasks ? (
                   <div
+                    style={{
+                      color: themeName === "dark-theme" && "white",
+                    }}
                     onClick={openCompletedTasks}
                     className="fs-12 show-completed-text pointer"
                   >
                     Show Completed
                   </div>
                 ) : (
-                  <div
-                    onClick={openAllTasks}
-                    className="fs-12 show-completed-text pointer"
-                  >
-                    Show Tasks
-                  </div>
+                  <>
+                    <div
+                      style={{
+                        color: themeName === "dark-theme" && "white",
+                      }}
+                      onClick={openAllTasks}
+                      className="fs-12 show-completed-text pointer"
+                    >
+                      Show Tasks
+                    </div>
+                  </>
                 )}
               </div>
+
               <div className="mt-20"></div>
+              {showCompletedTasks && completedTask.length > 0 && (
+                <>
+                  <div className="clear-all-completed-tasks">
+                    {clearAllCompletedProcessing ? (
+                      <>
+                        <Lottie
+                          style={{
+                            width: "36px",
+                            height: "36px",
+                          }}
+                          animationData={clearAnimationData}
+                        />
+                      </>
+                    ) : (
+                      <button onClick={clearAllCompletedTasks}>
+                        — Clear All Completed Tasks
+                      </button>
+                    )}
+                  </div>
+                  <div className="mt-10"></div>
+                </>
+              )}
               <div>
                 <input
                   onKeyDown={handleKeyDown}
@@ -1539,7 +1947,11 @@ function Dashboard() {
                   name="task"
                   onChange={handleTaskChangeFromInput}
                   type="text"
-                  className="add-new-task-input"
+                  className={
+                    themeName === "dark-theme"
+                      ? "add-new-task-input dark-theme"
+                      : "add-new-task-input"
+                  }
                   placeholder="Add new task here"
                 />
               </div>
@@ -1576,7 +1988,7 @@ function Dashboard() {
                                     }}
                                     width={18}
                                     height={18}
-                                    fill="black"
+                                    fill={themeName === "dark-theme" && "grey"}
                                     viewBox="0 0 32 32"
                                   >
                                     <defs></defs>
@@ -1587,7 +1999,13 @@ function Dashboard() {
                                     </g>
                                   </svg>
                                 </div>
-                                <div>{task.task}</div>
+                                <div
+                                  style={{
+                                    color: themeName === "dark-theme" && "grey",
+                                  }}
+                                >
+                                  {task.task}
+                                </div>
                               </div>
 
                               <div className="category-and-detail-task-wrapper">
@@ -1608,7 +2026,13 @@ function Dashboard() {
                                         style={{
                                           backgroundColor:
                                             hoveredTodoTaskMoreBtn === index &&
-                                            "#f7f6ff",
+                                            themeName === "light-theme"
+                                              ? "#f7f6ff"
+                                              : hoveredTodoTaskMoreBtn ===
+                                                  index &&
+                                                themeName === "dark-theme"
+                                              ? "#23272f"
+                                              : "",
                                           transition:
                                             "background-color 0.25s ease 0s",
                                         }}
@@ -1638,7 +2062,11 @@ function Dashboard() {
                                         )}
                                       </div>
                                       <Popover
-                                        className="popover-material-ui-light-theme"
+                                        className={`popover-material-ui-${
+                                          themeName === "dark-theme"
+                                            ? "dark-theme"
+                                            : "light-theme"
+                                        }`}
                                         {...bindPopover(popupState)}
                                         anchorOrigin={{
                                           vertical: "center",
@@ -1732,7 +2160,9 @@ function Dashboard() {
                                                   display: "flex",
                                                   alignItems: "center",
                                                   border:
-                                                    "1px solid rgb(231,231,231)",
+                                                    themeName === "dark-theme"
+                                                      ? "1px solid rgba(101, 119, 134, 0.2)"
+                                                      : "1px solid rgb(231,231,231)",
                                                 }}
                                               >
                                                 <LightTooltip title="Priority 4">
@@ -1757,7 +2187,13 @@ function Dashboard() {
                                               </div>
                                             </div>
                                           </div>
-                                          <div className="content-wrapper edit-option pointer">
+                                          <div
+                                            className={`content-wrapper edit-option edit-option-${
+                                              themeName === "dark-theme"
+                                                ? "dark-theme"
+                                                : ""
+                                            } pointer `}
+                                          >
                                             <div className="first-content-popover ">
                                               <div>
                                                 <svg
@@ -1796,7 +2232,11 @@ function Dashboard() {
                                             </div>
                                           </div>
                                           <div
-                                            className="content-wrapper delete-option pointer"
+                                            className={`content-wrapper delete-option delete-option-${
+                                              themeName === "dark-theme"
+                                                ? "dark-theme"
+                                                : ""
+                                            } pointer `}
                                             onClick={() => {
                                               taskSoftDeletion(task._id, task);
                                               popupState.close();
@@ -1856,7 +2296,11 @@ function Dashboard() {
                                 {/* popover finish to check */}
 
                                 <div
-                                  className={`category-${task.category.toLowerCase()}`}
+                                  className={`category-${task.category.toLowerCase()} ${
+                                    themeName === "dark-theme"
+                                      ? "dark-theme"
+                                      : ""
+                                  }`}
                                 >
                                   {task.category.charAt(0).toUpperCase() +
                                     task.category.slice(1)}
@@ -1865,7 +2309,10 @@ function Dashboard() {
                             </div>
                             <div
                               style={{
-                                borderBottom: "1px solid rgb(231,231,231)",
+                                borderBottom:
+                                  themeName === "dark-theme"
+                                    ? "1px solid rgba(101, 119, 134, 0.2)"
+                                    : "1px solid rgb(231,231,231)",
                               }}
                             ></div>
                           </div>
@@ -1877,54 +2324,388 @@ function Dashboard() {
                   <>
                     {completedTask.map((task, index) => (
                       <>
-                        <div key={index} className="last-section-task-details">
-                          <div className="task-wrapper">
-                            <div>
+                        {!task.deleted && (
+                          <div
+                            onMouseEnter={() =>
+                              setHoveredCompletedTodoTaskMoreBtn(index)
+                            }
+                            onMouseLeave={() =>
+                              setHoveredCompletedTodoTaskMoreBtn(null)
+                            }
+                            key={index}
+                            className="last-section-task-details"
+                          >
+                            <div className="task-wrapper">
                               <div>
-                                <svg
-                                  width={18}
-                                  height={18}
-                                  version="1.1"
-                                  viewBox="0 0 25 25"
-                                >
-                                  <title />
-                                  <desc />
-                                  <defs />
-                                  <g
-                                    fillRule="evenodd"
-                                    stroke="none"
-                                    strokeWidth="1"
+                                <div>
+                                  <svg
+                                    className={`clicked_animate ${
+                                      undoCompletedBtnAnimationActive === index
+                                        ? ""
+                                        : "reset"
+                                    }`}
+                                    onClick={() => {
+                                      hardUndoCompletedTask(task._id, index);
+                                    }}
+                                    style={{
+                                      borderRadius: "50%",
+                                      cursor: "pointer",
+                                    }}
+                                    width={18}
+                                    height={18}
+                                    version="1.1"
+                                    viewBox="0 0 25 25"
                                   >
-                                    <g fill="#5aed7c">
-                                      <path
-                                        d="M12.5,25 C19.4035594,25 25,19.4035594 25,12.5 C25,5.59644063 19.4035594,0 12.5,0 C5.59644063,0 0,5.59644063 0,12.5 C0,19.4035594 5.59644063,25 12.5,25 Z M9.5007864,16.7921068 L5.37867966,12.6700001 L4.67157288,13.3771069 L9.62132034,18.3268543 L10.3284271,17.6197475 L10.2078932,17.4992136 L20.1568542,7.55025253 L19.4497475,6.84314575 L9.5007864,16.7921068 Z"
-                                        id="Check-Circle"
-                                      />
+                                    <title />
+                                    <desc />
+                                    <defs />
+                                    <g
+                                      fillRule="evenodd"
+                                      stroke="none"
+                                      strokeWidth="1"
+                                    >
+                                      <g fill="#5aed7c">
+                                        <path
+                                          d="M12.5,25 C19.4035594,25 25,19.4035594 25,12.5 C25,5.59644063 19.4035594,0 12.5,0 C5.59644063,0 0,5.59644063 0,12.5 C0,19.4035594 5.59644063,25 12.5,25 Z M9.5007864,16.7921068 L5.37867966,12.6700001 L4.67157288,13.3771069 L9.62132034,18.3268543 L10.3284271,17.6197475 L10.2078932,17.4992136 L20.1568542,7.55025253 L19.4497475,6.84314575 L9.5007864,16.7921068 Z"
+                                          id="Check-Circle"
+                                        />
+                                      </g>
                                     </g>
-                                  </g>
-                                </svg>
+                                  </svg>
+                                </div>
+                                <div
+                                  style={{
+                                    color: themeName === "dark-theme" && "grey",
+                                  }}
+                                >
+                                  {task.task}
+                                </div>
                               </div>
-                              <div>{task.task}</div>
+                              <div className="category-and-detail-task-wrapper">
+                                {/* popover start to check */}
+                                <PopupState
+                                  variant="popover"
+                                  popupId="demo-popup-popover"
+                                >
+                                  {(popupState) => (
+                                    <div>
+                                      <div
+                                        onMouseEnter={() =>
+                                          setHoveredCompletedTodoTaskMoreBtn(
+                                            index
+                                          )
+                                        }
+                                        onMouseLeave={() =>
+                                          setHoveredCompletedTodoTaskMoreBtn(
+                                            null
+                                          )
+                                        }
+                                        style={{
+                                          backgroundColor:
+                                            hoveredCompletedTodoTaskMoreBtn ===
+                                              index &&
+                                            themeName === "light-theme"
+                                              ? "#f7f6ff"
+                                              : hoveredCompletedTodoTaskMoreBtn ===
+                                                  index &&
+                                                themeName === "dark-theme"
+                                              ? "#23272f"
+                                              : "",
+                                          transition:
+                                            "background-color 0.25s ease 0s",
+                                        }}
+                                        className="more-btn-wrapper"
+                                        {...bindTrigger(popupState)}
+                                      >
+                                        {hoveredCompletedTodoTaskMoreBtn ===
+                                          index && (
+                                          <svg
+                                            style={{
+                                              transition: "fill 0.25s ease 0s",
+                                            }}
+                                            fill={
+                                              hoveredCompletedTodoTaskMoreBtn ===
+                                              index
+                                                ? "#5757ff"
+                                                : "#75757A"
+                                            }
+                                            height="18px"
+                                            width="18px"
+                                            viewBox="0 0 512 512"
+                                          >
+                                            <g>
+                                              <path d="M256,224c-17.7,0-32,14.3-32,32s14.3,32,32,32c17.7,0,32-14.3,32-32S273.7,224,256,224L256,224z" />
+                                              <path d="M128.4,224c-17.7,0-32,14.3-32,32s14.3,32,32,32c17.7,0,32-14.3,32-32S146,224,128.4,224L128.4,224z" />
+                                              <path d="M384,224c-17.7,0-32,14.3-32,32s14.3,32,32,32s32-14.3,32-32S401.7,224,384,224L384,224z" />
+                                            </g>
+                                          </svg>
+                                        )}
+                                      </div>
+                                      <Popover
+                                        className={`popover-material-ui-${
+                                          themeName === "dark-theme"
+                                            ? "dark-theme"
+                                            : "light-theme"
+                                        }`}
+                                        {...bindPopover(popupState)}
+                                        anchorOrigin={{
+                                          vertical: "center",
+                                          horizontal: "left",
+                                        }}
+                                        transformOrigin={{
+                                          vertical: "center",
+                                          horizontal: "right",
+                                        }}
+                                      >
+                                        <div className="popover-content-details">
+                                          <div className="priority-options-wrapper priority-option">
+                                            <div className="first-content-priority-options">
+                                              <div>Priority</div>
+                                              <div>
+                                                <kbd className="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
+                                                  Y
+                                                </kbd>
+                                              </div>
+                                            </div>
+                                            <div className="second-content-priority-options">
+                                              <div
+                                                className="pointer"
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                }}
+                                              >
+                                                <LightTooltip title="Priority 1">
+                                                  <svg
+                                                    width="24"
+                                                    height="24"
+                                                    viewBox="0 0 24 24"
+                                                  >
+                                                    <path
+                                                      fill="#D0453A"
+                                                      fillRule="evenodd"
+                                                      d="M4.223 4.584A.5.5 0 0 0 4 5v14.5a.5.5 0 0 0 1 0v-5.723C5.886 13.262 7.05 13 8.5 13c.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.759 0 3.187-.357 4.277-1.084A.5.5 0 0 0 20 13V4.5a.5.5 0 0 0-.777-.416C18.313 4.69 17.075 5 15.5 5c-.97 0-1.704-.178-3.342-.724C10.421 3.696 9.613 3.5 8.5 3.5c-1.758 0-3.187.357-4.277 1.084Z"
+                                                      clipRule="evenodd"
+                                                    ></path>
+                                                  </svg>
+                                                </LightTooltip>
+                                              </div>
+                                              <div
+                                                className="pointer"
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                }}
+                                              >
+                                                <LightTooltip title="Priority 2">
+                                                  <svg
+                                                    width="24"
+                                                    height="24"
+                                                    viewBox="0 0 24 24"
+                                                  >
+                                                    <path
+                                                      fill="#EB8907"
+                                                      fillRule="evenodd"
+                                                      d="M4.223 4.584A.5.5 0 0 0 4 5v14.5a.5.5 0 0 0 1 0v-5.723C5.886 13.262 7.05 13 8.5 13c.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.759 0 3.187-.357 4.277-1.084A.5.5 0 0 0 20 13V4.5a.5.5 0 0 0-.777-.416C18.313 4.69 17.075 5 15.5 5c-.97 0-1.704-.178-3.342-.724C10.421 3.696 9.613 3.5 8.5 3.5c-1.758 0-3.187.357-4.277 1.084Z"
+                                                      clipRule="evenodd"
+                                                    ></path>
+                                                  </svg>
+                                                </LightTooltip>
+                                              </div>
+                                              <div
+                                                className="pointer"
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                }}
+                                              >
+                                                <LightTooltip title="Priority 3">
+                                                  <svg
+                                                    width="24"
+                                                    height="24"
+                                                    viewBox="0 0 24 24"
+                                                  >
+                                                    <path
+                                                      fill="#236EE0"
+                                                      fillRule="evenodd"
+                                                      d="M4.223 4.584A.5.5 0 0 0 4 5v14.5a.5.5 0 0 0 1 0v-5.723C5.886 13.262 7.05 13 8.5 13c.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.759 0 3.187-.357 4.277-1.084A.5.5 0 0 0 20 13V4.5a.5.5 0 0 0-.777-.416C18.313 4.69 17.075 5 15.5 5c-.97 0-1.704-.178-3.342-.724C10.421 3.696 9.613 3.5 8.5 3.5c-1.758 0-3.187.357-4.277 1.084Z"
+                                                      clipRule="evenodd"
+                                                    ></path>
+                                                  </svg>
+                                                </LightTooltip>
+                                              </div>
+                                              <div
+                                                className="pointer"
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                  border:
+                                                    themeName === "dark-theme"
+                                                      ? "1px solid rgba(101, 119, 134, 0.2)"
+                                                      : "1px solid rgb(231,231,231)",
+                                                }}
+                                              >
+                                                <LightTooltip title="Priority 4">
+                                                  <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="24"
+                                                    height="24"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    className="g1pQExb"
+                                                    data-icon-name="priority-icon"
+                                                    data-priority="4"
+                                                  >
+                                                    <path
+                                                      fill="currentColor"
+                                                      fillRule="evenodd"
+                                                      d="M4 5a.5.5 0 0 1 .223-.416C5.313 3.857 6.742 3.5 8.5 3.5c1.113 0 1.92.196 3.658.776C13.796 4.822 14.53 5 15.5 5c1.575 0 2.813-.31 3.723-.916A.5.5 0 0 1 20 4.5V13a.5.5 0 0 1-.223.416c-1.09.727-2.518 1.084-4.277 1.084-1.113 0-1.92-.197-3.658-.776C10.204 13.178 9.47 13 8.5 13c-1.45 0-2.614.262-3.5.777V19.5a.5.5 0 0 1-1 0V5Zm4.5 7c-1.367 0-2.535.216-3.5.654V5.277c.886-.515 2.05-.777 3.5-.777.97 0 1.704.178 3.342.724 1.737.58 2.545.776 3.658.776 1.367 0 2.535-.216 3.5-.654v7.377c-.886.515-2.05.777-3.5.777-.97 0-1.704-.178-3.342-.724C10.421 12.196 9.613 12 8.5 12Z"
+                                                      clipRule="evenodd"
+                                                    ></path>
+                                                  </svg>
+                                                </LightTooltip>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div
+                                            className={`content-wrapper edit-option edit-option-${
+                                              themeName === "dark-theme"
+                                                ? "dark-theme"
+                                                : ""
+                                            } pointer `}
+                                          >
+                                            <div className="first-content-popover ">
+                                              <div>
+                                                <svg
+                                                  width={16}
+                                                  height={16}
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <g
+                                                    fill="none"
+                                                    fillRule="evenodd"
+                                                  >
+                                                    <path
+                                                      fill="currentColor"
+                                                      d="M9.5 19h10a.5.5 0 1 1 0 1h-10a.5.5 0 1 1 0-1z"
+                                                    ></path>
+                                                    <path
+                                                      stroke="currentColor"
+                                                      d="M4.42 16.03a1.5 1.5 0 0 0-.43.9l-.22 2.02a.5.5 0 0 0 .55.55l2.02-.21a1.5 1.5 0 0 0 .9-.44L18.7 7.4a1.5 1.5 0 0 0 0-2.12l-.7-.7a1.5 1.5 0 0 0-2.13 0L4.42 16.02z"
+                                                    ></path>
+                                                  </g>
+                                                </svg>
+                                              </div>
+                                              <div>Edit</div>
+                                            </div>
+                                            <div className="second-content-popover">
+                                              <div>
+                                                <kbd className="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
+                                                  ⌘
+                                                </kbd>
+                                              </div>
+                                              <div>
+                                                <kbd className="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
+                                                  E
+                                                </kbd>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div
+                                            className={`content-wrapper delete-option delete-option-${
+                                              themeName === "dark-theme"
+                                                ? "dark-theme"
+                                                : ""
+                                            } pointer `}
+                                            onClick={() => {
+                                              completedTaskSoftDeletion(
+                                                task._id,
+                                                task
+                                              );
+                                              popupState.close();
+                                            }}
+                                          >
+                                            <div className="first-content-popover  ">
+                                              <div>
+                                                <svg
+                                                  width={16}
+                                                  height={16}
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <g
+                                                    fill="none"
+                                                    fillRule="evenodd"
+                                                  >
+                                                    <path d="M0 0h24v24H0z"></path>
+                                                    <rect
+                                                      width="14"
+                                                      height="1"
+                                                      x="5"
+                                                      y="6"
+                                                      fill="currentColor"
+                                                      rx="0.5"
+                                                    ></rect>
+                                                    <path
+                                                      fill="currentColor"
+                                                      d="M10 9h1v8h-1V9zm3 0h1v8h-1V9z"
+                                                    ></path>
+                                                    <path
+                                                      stroke="currentColor"
+                                                      d="M17.5 6.5h-11V18A1.5 1.5 0 0 0 8 19.5h8a1.5 1.5 0 0 0 1.5-1.5V6.5zm-9 0h7V5A1.5 1.5 0 0 0 14 3.5h-4A1.5 1.5 0 0 0 8.5 5v1.5z"
+                                                    ></path>
+                                                  </g>
+                                                </svg>
+                                              </div>
+                                              <div>Delete</div>
+                                            </div>
+                                            <div className="second-content-popover">
+                                              <div>
+                                                <kbd className="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
+                                                  ⌘
+                                                </kbd>
+                                              </div>
+                                              <div>
+                                                <kbd className="MfVfq5c4BnVGSEZ2TX0WwwG58z0TN9HG HJVn5ZIy7NR5i9LDOqYUeg5eaDTAY8FT a83bd4e0 _266d6623 fb8d74bb">
+                                                  ⌫
+                                                </kbd>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </Popover>
+                                    </div>
+                                  )}
+                                </PopupState>
+                                {/* popover finish to check */}
+                                <div
+                                  className={`category-${task.category.toLowerCase()} ${
+                                    themeName === "dark-theme"
+                                      ? "dark-theme"
+                                      : ""
+                                  }`}
+                                >
+                                  {task.category.charAt(0).toUpperCase() +
+                                    task.category.slice(1)}
+                                </div>
+                              </div>
                             </div>
                             <div
-                              className={`category-${task.category.toLowerCase()}`}
-                            >
-                              {task.category.charAt(0).toUpperCase() +
-                                task.category.slice(1)}
-                            </div>
+                              style={{
+                                borderBottom:
+                                  themeName === "dark-theme"
+                                    ? "1px solid rgba(101, 119, 134, 0.2)"
+                                    : "1px solid rgb(231,231,231)",
+                              }}
+                            ></div>
                           </div>
-                          <div
-                            style={{
-                              borderBottom: "1px solid rgb(231,231,231)",
-                            }}
-                          ></div>
-                        </div>
+                        )}
                       </>
                     ))}
                   </>
                 )}
               </div>
             </div>
+            <div className="mt-30"></div>
           </div>
         </div>
       </div>

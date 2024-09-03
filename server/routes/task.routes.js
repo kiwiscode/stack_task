@@ -68,6 +68,7 @@ router.get("/in-progress", authenticateToken, async (req, res) => {
   try {
     const tasks = await Task.find({
       user: req.user.userId,
+      deleted: false,
       status: "in-progress",
     });
 
@@ -83,6 +84,7 @@ router.get("/completed", authenticateToken, async (req, res) => {
   try {
     const tasks = await CompletedTask.find({
       user: req.user.userId,
+      deleted: false,
       status: "completed",
     });
 
@@ -203,14 +205,128 @@ router.patch("/undo/:taskId", authenticateToken, async (req, res) => {
   }
 });
 
-router.delete("/delete-all", authenticateToken, (req, res) => {});
-
+// delete all completed tasks for a user
 router.delete(
-  "/delete-all-completed-tasks",
+  "/delete-completed-tasks/:userId",
   authenticateToken,
-  (req, res) => {}
+  async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+      // Tüm tamamlanmış görevleri sil
+      const deleteResult = await CompletedTask.deleteMany({ user: userId });
+
+      return res.status(200).json({
+        message: `${deleteResult.deletedCount} completed tasks were deleted`,
+        result: deleteResult,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
 );
 
-router.delete("/delete-completed-task", authenticateToken, (req, res) => {});
+// undo completed task
+router.post(
+  "/undo-completed/:completedTaskId",
+  authenticateToken,
+  async (req, res) => {
+    const { completedTaskId } = req.params;
+
+    try {
+      // CompletedTask'ı bul
+      const completedTask = await CompletedTask.findById(completedTaskId);
+      if (!completedTask) {
+        return res.status(404).send("Completed task not found");
+      }
+
+      // Task ID'yi kullanarak tasks koleksiyonunda arama yap
+      let task = await Task.findById(completedTask.taskId);
+
+      if (task) {
+        // Eğer task varsa, durumu 'todo' olarak güncelle
+        task.status = "todo";
+        task.completed = false;
+        await task.save();
+      } else {
+        // Eğer task yoksa, yeni bir task oluştur
+        task = new Task({
+          task: completedTask.task,
+          status: "todo",
+          user: completedTask.user,
+          category: completedTask.category,
+        });
+        await task.save();
+      }
+
+      // CompletedTask'ı sil
+      await CompletedTask.findByIdAndDelete(completedTaskId);
+
+      res
+        .status(200)
+        .send("Task has been reverted to todo and completed task deleted");
+    } catch (error) {
+      console.error("Error undoing completed task:", error);
+      res.status(500).send("Internal server error");
+    }
+  }
+);
+
+// soft delete a completed task by its taskId
+router.patch(
+  "/completed-tasks/delete/:completedTaskId",
+  authenticateToken,
+  async (req, res) => {
+    const { completedTaskId } = req.params;
+
+    try {
+      const updatedTask = await CompletedTask.findByIdAndUpdate(
+        completedTaskId,
+        { deleted: true },
+        { new: true }
+      );
+
+      if (!updatedTask) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Task marked as deleted", task: updatedTask });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+);
+
+// undo soft delete of a completed task by its taskId
+router.patch(
+  "/completed-tasks/undo/:completedTaskId",
+  authenticateToken,
+  async (req, res) => {
+    const { completedTaskId } = req.params;
+
+    try {
+      const updatedTask = await CompletedTask.findByIdAndUpdate(
+        completedTaskId,
+        { deleted: false },
+        { new: true }
+      );
+
+      if (!updatedTask) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Task restored successfully", task: updatedTask });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+);
 
 module.exports = router;

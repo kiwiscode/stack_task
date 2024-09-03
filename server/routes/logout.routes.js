@@ -30,6 +30,10 @@ router.post("/", authenticateToken, async (req, res) => {
       user: userId,
       $or: [{ deleted: true }, { completed: true }],
     });
+    await CompletedTask.deleteMany({
+      user: userId,
+      deleted: true,
+    });
 
     res.sendStatus(200);
   } catch (error) {
