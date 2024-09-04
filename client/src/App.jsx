@@ -4,6 +4,7 @@ import Dashboard from "../src/Pages/Dashboard";
 import SignUp from "./Pages/SignUp";
 import LogIn from "./Pages/Login";
 import { useContext } from "react";
+import Main from "./Pages/Main";
 
 function App() {
   const { userInfo, getToken } = useContext(UserContext);
@@ -11,14 +12,15 @@ function App() {
   return (
     <div className="App">
       <Routes>
+        <Route path="/" element={<Main />} />
         <Route
           path="/dashboard"
           element={
             userInfo && userInfo.active ? <Dashboard /> : <Navigate to="/" />
           }
         />
-        <Route path="/" element={<LogIn />} />
-        <Route path="/signup" element={<SignUp />} />
+        <Route path="/auth/login" element={<LogIn />} />
+        <Route path="/auth/signup" element={<SignUp />} />
       </Routes>
     </div>
   );

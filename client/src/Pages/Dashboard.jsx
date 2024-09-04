@@ -460,6 +460,7 @@ function Dashboard() {
       );
 
       getAllTasks();
+      getAllInProgressTasks();
 
       const undoTask = async (req, res) => {
         try {
@@ -474,6 +475,7 @@ function Dashboard() {
           );
 
           getAllTasks();
+          getAllInProgressTasks();
         } catch (error) {
           console.error("error:", error);
         }
@@ -1421,6 +1423,7 @@ function Dashboard() {
               justifyContent: "center",
               alignItems: "center",
               bottom: 0,
+              // bottom: 20,
               left: 0,
               position: "absolute",
             }}

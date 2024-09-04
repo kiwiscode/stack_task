@@ -23,6 +23,14 @@ body {
   transition: background 0.2s linear;
 }
 
+.video-wrapper video {
+  /* clip-path: inset(1px 1px) !important;*/
+  margin-block-end: -2px !important;
+}
+
+.mt-60 {
+  margin-top: 60px;
+}
 .mt-40 {
   margin-top: 40px;
 }
@@ -185,17 +193,6 @@ body {
   pointer-events: none;
 }
 
-.new-task button {
-  height: 36px;
-  background-color: #5558fd;
-  color: white;
-  font-size: 13px;
-  border: none;
-  outline-style: none;
-  border-radius: 5px;
-  min-width: 100px;
-  cursor: pointer;
-}
 .clear-all-completed-tasks {
   width: 100%;
   text-align: right;
@@ -213,6 +210,15 @@ body {
   outline-style: none;
   border-radius: 5px;
   min-width: 100px;
+  cursor: pointer;
+}
+
+.new-task button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: #5558fd;
+  color: white;
+  border-radius: 0.25rem;
   cursor: pointer;
 }
 
@@ -828,7 +834,7 @@ input:focus {
 .content-container-mid-section.light-theme {
   background-color: #fbfbfd;
 }
-
+/* Review bug reports. */
 .content-container-mid-section.dark-theme {
   background-color: #091017;
 }
@@ -953,6 +959,8 @@ input:focus {
   background-color: black !important;
   overflow-y: hidden !important;
   filter: drop-shadow(rgb(51, 54, 57) 1px -1px 1px) !important;
+  box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 15px,
+    rgba(255, 255, 255, 0.15) 0px 0px 3px 1px !important;
   border-radius: 5px !important;
   min-width: 200px;
   color: grey;
@@ -1015,4 +1023,38 @@ input:focus {
   color: white;
   font-weight: 600;
   border: 1px solid rgba(101, 119, 134, 0.2);
+}
+
+/* user comment card */
+.user-comment-cards-wrapper {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  padding: 0px 60px;
+  gap: 32px;
+}
+
+.user-comment-cards-wrapper .first,
+.user-comment-cards-wrapper .second,
+.user-comment-cards-wrapper .third {
+  grid-column: span 4 !important;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px;
+  background-color: white;
+  border-radius: 32px;
+  box-shadow: 0 0 15px rgba(101, 119, 134, 0.2),
+    0 0 5px 3px rgba(101, 119, 134, 0.15) !important;
+}
+.user-comment-cards-wrapper.dark-theme .first,
+.user-comment-cards-wrapper.dark-theme .second,
+.user-comment-cards-wrapper.dark-theme .third {
+  grid-column: span 4 !important;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px;
+  background-color: white;
+  border-radius: 32px;
+  filter: drop-shadow(rgb(51, 54, 57) 1px -1px 1px) !important;
+  box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 15px,
+    rgba(255, 255, 255, 0.15) 0px 0px 3px 1px !important;
 }

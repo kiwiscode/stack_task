@@ -67,35 +67,37 @@ function LogIn() {
   };
 
   return (
-    <div className="login-container">
-      <input
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Username"
-        className="login-input"
-      />
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
-        title="Please provide a valid email address."
-        className="login-input"
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        className="login-input"
-      />
-      {error && <p className="login-error">{error}</p>}
-      <button onClick={handleLogin} className="login-button">
-        Login
-      </button>
-    </div>
+    <>
+      <div className="login-container">
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
+          className="login-input"
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+          title="Please provide a valid email address."
+          className="login-input"
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          className="login-input"
+        />
+        {error && <p className="login-error">{error}</p>}
+        <button onClick={handleLogin} className="login-button">
+          Login
+        </button>
+      </div>
+    </>
   );
 }
 
