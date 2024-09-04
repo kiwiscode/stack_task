@@ -4,6 +4,7 @@ import { ThemeContext } from "../Context/ThemeContext";
 import useWindowDimensions from "../utils/useWindowDimensions";
 import landingPageVideo from "../assets/videos/landing-video-1.mp4";
 import Marquee from "react-fast-marquee";
+import Footer from "../Components/Footer/Footer";
 
 function Main() {
   const { themeName } = useContext(ThemeContext);
@@ -281,6 +282,7 @@ function Main() {
       <div className="mt-60"></div>
       {/* user comment cards */}
       <div className="mt-60"></div>
+      <Footer />
     </div>
   );
 }

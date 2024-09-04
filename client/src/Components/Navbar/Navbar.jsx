@@ -38,12 +38,37 @@ function Navbar() {
         className={`navbar ${themeName === "dark-theme" ? "dark-theme" : ""}`}
       >
         <div
-          className="navbar-brand"
+          className="logo-wrapper"
           style={{
-            color: themeName === "dark-theme" ? "white" : "#161d28",
+            display: "flex",
+            flexDirection: "row",
+            flex: 1,
+            alignItems: "center",
           }}
         >
-          Stack Task
+          <svg
+            style={{
+              padding: "8px 16px",
+              maxHeight: "33.5px",
+              flexShrink: 0,
+            }}
+            viewBox="0 0 100 100"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="100" height="100" rx="20" fill="#5558fd" />
+            <rect x="16" y="28" width="68" height="12" rx="6" fill="white" />
+            <rect x="16" y="44" width="68" height="12" rx="6" fill="white" />
+            <rect x="16" y="60" width="68" height="12" rx="6" fill="white" />
+          </svg>
+          <div
+            className="navbar-brand"
+            style={{
+              color: themeName === "dark-theme" ? "white" : "#161d28",
+            }}
+          >
+            Stack Task
+          </div>
         </div>
 
         <div className="navbar-left-side-wrapper">

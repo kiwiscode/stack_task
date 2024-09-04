@@ -613,7 +613,7 @@ body {
 input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 1;
   display: block;
-  background: url("../src/assets/calendar.svg") no-repeat;
+  background: url("../src/assets/calendar/calendar.svg") no-repeat;
   width: 12px;
   height: 12px;
   border-width: thin;
@@ -710,7 +710,7 @@ input:focus {
 
 .profile-image-place-holder,
 .profile-image-place-holder-variant-two {
-  background-color: #5757ff;
+  background-color: #5558fd;
   border-radius: 50%;
   flex-shrink: 0;
   display: flex;
@@ -1023,38 +1023,4 @@ input:focus {
   color: white;
   font-weight: 600;
   border: 1px solid rgba(101, 119, 134, 0.2);
-}
-
-/* user comment card */
-.user-comment-cards-wrapper {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  padding: 0px 60px;
-  gap: 32px;
-}
-
-.user-comment-cards-wrapper .first,
-.user-comment-cards-wrapper .second,
-.user-comment-cards-wrapper .third {
-  grid-column: span 4 !important;
-  display: flex;
-  flex-direction: column;
-  padding: 28px 24px;
-  background-color: white;
-  border-radius: 32px;
-  box-shadow: 0 0 15px rgba(101, 119, 134, 0.2),
-    0 0 5px 3px rgba(101, 119, 134, 0.15) !important;
-}
-.user-comment-cards-wrapper.dark-theme .first,
-.user-comment-cards-wrapper.dark-theme .second,
-.user-comment-cards-wrapper.dark-theme .third {
-  grid-column: span 4 !important;
-  display: flex;
-  flex-direction: column;
-  padding: 28px 24px;
-  background-color: white;
-  border-radius: 32px;
-  filter: drop-shadow(rgb(51, 54, 57) 1px -1px 1px) !important;
-  box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 15px,
-    rgba(255, 255, 255, 0.15) 0px 0px 3px 1px !important;
 }
