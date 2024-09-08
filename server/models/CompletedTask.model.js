@@ -14,7 +14,6 @@ const completedTaskSchema = new Schema(
     taskId: {
       type: Schema.Types.ObjectId,
       ref: "Task",
-      required: true,
     },
     user: {
       type: Schema.Types.ObjectId,

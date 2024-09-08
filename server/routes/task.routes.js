@@ -1,10 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const authenticateToken = require("../middleware/jwtMiddleware");
-const User = require("../models/User.model");
 const Task = require("../models/Task.model");
 const CompletedTask = require("../models/CompletedTask.model");
-const capitalize = require("../helpers/capitalize");
 
 // add task
 router.post("/", authenticateToken, async (req, res) => {
