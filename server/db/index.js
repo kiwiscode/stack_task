@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
 // when working on deploy version
-const MONGO_URI = "mongodb://127.0.0.1:27017/mern-todo-list-project";
+// const MONGO_URI = "mongodb://127.0.0.1:27017/mern-todo-list-project";
 
 // when working on deployment version
-// origin: process.env.MONGO_URI,
+const MONGO_URI = process.env.MONGO_URI;
 
 mongoose
   .connect(MONGO_URI)
