@@ -20,9 +20,9 @@ module.exports = (app) => {
   app.use(
     cors({
       // when working on local version
-      // origin: "http://localhost:5173",
+      origin: "http://localhost:5173",
       // when working on deployment version
-      origin: process.env.FRONTEND_URI,
+      // origin: process.env.FRONTEND_URI,
     })
   );
 };

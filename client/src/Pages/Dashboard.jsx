@@ -15,13 +15,16 @@ import { useAntdMessageHandler } from "../utils/useAntdMessageHandler";
 import completedTaskSound from "../sounds/todo-completed-sound.mp3";
 import priorityClickedSound from "../sounds/priority-hover-sound.mp3";
 import { ThemeContext } from "../Context/ThemeContext";
+import { AuthenticationModalContext } from "../Context/AuthenticationModalContext";
 
 // when working on local version
 const API_URL = import.meta.env.VITE_APP_API_URL;
 
 function Dashboard() {
   const { themeName, toggleTheme } = useContext(ThemeContext);
-
+  const { setAuthenticationModalOpened, setShowRegisterTab } = useContext(
+    AuthenticationModalContext
+  );
   const handleToggle = () => {
     if (themeName === "light-theme") {
       toggleTheme("dark-theme");
@@ -395,6 +398,8 @@ function Dashboard() {
 
   // handle logout
   const handleLogout = async () => {
+    setShowRegisterTab(false);
+    setAuthenticationModalOpened(false);
     try {
       const result = await axios.post(
         `${API_URL}/logout`,

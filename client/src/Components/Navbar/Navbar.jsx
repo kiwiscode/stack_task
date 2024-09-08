@@ -172,6 +172,22 @@ function Navbar() {
         setAuthenticationError("");
       }, 400);
       setTimeout(() => {
+        setAuthenticationModalOpened(true);
+        setShowRegisterTab(false);
+        setAuthLoading(false);
+        setAuthenticationError("");
+        setShowAuthModalSignUpPage(true);
+        setShowAuthModalLogInPage(false);
+        setSignUpFormData({
+          name: "",
+          username: "",
+          email: "",
+          password: "",
+        });
+        setLoginFormData({
+          authenticationType: "",
+          password: "",
+        });
         navigate("/dashboard");
       }, 800);
       setTimeout(() => {
@@ -212,9 +228,11 @@ function Navbar() {
         password: "",
       });
     } catch (error) {
-      setAuthenticationError(
-        error.response.data.error || error.response.data.message
-      );
+      if (error.response.data) {
+        setAuthenticationError(
+          error.response.data.error || error.response.data.message
+        );
+      }
       console.error("error:", error);
     }
   };
