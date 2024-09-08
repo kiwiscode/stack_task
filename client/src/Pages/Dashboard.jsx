@@ -1247,7 +1247,7 @@ function Dashboard() {
                 <div
                   style={{
                     padding: "0px 12px",
-                    maxHeight: expandedItem === "inbox" ? "200px" : "0px",
+                    maxHeight: expandedItem === "inbox" ? "220px" : "0px",
                     overflow: "hidden",
                     transition: "max-height 0.25s ease-out",
                     marginBottom: expandedItem === "inbox" && "20px",

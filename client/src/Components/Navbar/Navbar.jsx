@@ -40,6 +40,9 @@ function Navbar() {
     authenticationType: "",
     password: "",
   });
+  const [animationSideBar, setAnimationSideBar] = useState(false);
+  const sideBarParentRef = useRef(null);
+  const sideBarChildRef = useRef(null);
 
   const handleChangeSignupFormData = (e) => {
     const { name, value } = e.target;
@@ -59,6 +62,7 @@ function Navbar() {
   };
 
   const toggleMenu = () => {
+    setAnimationSideBar("active");
     setIsOpen(!isOpen);
   };
   const handleToggle = () => {
@@ -71,6 +75,7 @@ function Navbar() {
 
   // login modal scneario
   const openAuthModal = () => {
+    setIsOpen(false);
     setAuthenticationModalOpened(true);
     setShowAuthModalSignUpPage(false);
     setShowAuthModalLogInPage(true);
@@ -95,6 +100,7 @@ function Navbar() {
   };
 
   const openRegisterTab = () => {
+    setIsOpen(false);
     setAuthenticationModalOpened(true);
     setShowRegisterTab(true);
     setAuthLoading(false);
@@ -246,8 +252,69 @@ function Navbar() {
       closeAuthModal();
     }
   }, [authenticationModalOpened]);
+
+  const handleClickOutside = (event) => {
+    if (
+      sideBarChildRef.current &&
+      !sideBarChildRef.current.contains(event.target)
+    ) {
+      setAnimationSideBar("close");
+      setTimeout(() => {
+        setAnimationSideBar(null);
+        setIsOpen(false);
+      }, 250);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <>
+      {/* sidebar for mobile */}
+      {isOpen && (
+        <div
+          ref={sideBarParentRef}
+          className="navbar-responsive-mobile"
+          style={{
+            backgroundColor:
+              themeName === "dark-theme"
+                ? "rgba(91, 112, 131, 0.4)"
+                : "rgba(0,0,0,0.4)",
+          }}
+        >
+          <div
+            ref={sideBarChildRef}
+            className={`navbar-responsive-mobile-content ${animationSideBar} ${
+              themeName === "dark-theme" ? "dark-theme" : "light-theme"
+            }`}
+            style={{
+              backgroundColor: themeName === "dark-theme" ? "black" : "white",
+              boxShadow:
+                themeName === "dark-theme"
+                  ? "rgba(217, 217, 217, 0.2) 0px 0px 5px 0px, rgba(217, 217, 217, 0.25) 0px 1px 4px 1px"
+                  : "rgba(101, 119, 134, 0.2) 0px 0px 8px 0px, rgba(101, 119, 134, 0.25) 0px 1px 3px 1px",
+            }}
+          >
+            <button
+              onClick={openAuthModal}
+              className={`navbar-button first ${
+                themeName === "dark-theme" ? "dark-theme" : "light-theme"
+              }`}
+            >
+              Log In
+            </button>
+            <button onClick={openRegisterTab} className="navbar-button second">
+              Try for free
+            </button>
+          </div>
+        </div>
+      )}
       {/* login-signup modal */}
       <>
         <Modal
@@ -271,9 +338,9 @@ function Navbar() {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              width: width <= 768 ? "98%" : 410,
-              maxHeight: "95vh",
-              height: width <= 768 && "95vh",
+              width: width <= 768 ? "100%" : 410,
+              maxHeight: width <= 768 ? "100dvh" : "90dvh",
+              height: width <= 768 && "100dvh",
               backgroundColor: themeName === "dark-theme" ? "black" : "white",
               outlineStyle: "none",
               overflowY: "auto",
@@ -284,6 +351,7 @@ function Navbar() {
           >
             <div
               style={{
+                marginTop: "20px",
                 position: "sticky",
                 top: "0",
                 overflow: "hidden",
@@ -646,23 +714,7 @@ function Navbar() {
           </div>
         </Modal>
       </>
-      <div
-        className={`navbar-links-responsive ${isOpen ? "active" : ""} ${
-          themeName === "dark-theme" ? "dark-theme" : "light-theme"
-        }`}
-      >
-        <button
-          onClick={openAuthModal}
-          className={`navbar-button first ${
-            themeName === "dark-theme" ? "dark-theme" : "light-theme"
-          }`}
-        >
-          Log In
-        </button>
-        <button onClick={openRegisterTab} className="navbar-button second">
-          Try for free
-        </button>
-      </div>
+
       <nav
         className={`navbar ${
           themeName === "dark-theme" ? "dark-theme" : "light-theme"

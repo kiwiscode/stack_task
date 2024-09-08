@@ -75,7 +75,7 @@
   height: 100dvh;
 }
 
-.navbar-links-responsive {
+.navbar-responsive-mobile-content {
   display: none;
 }
 
@@ -99,51 +99,29 @@
     display: flex;
   }
 
-  .navbar-links-responsive {
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0px;
-    position: fixed;
-    z-index: 1;
-    width: 100%;
-    transform: translateY(-100%);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    opacity: 0;
-    z-index: 10;
-    box-shadow: 0 0 15px rgba(101, 119, 134, 0.2),
-      0 0 5px 3px rgba(101, 119, 134, 0.15) !important;
-  }
-
-  .navbar-links-responsive.dark-theme {
-    background-color: #091017;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0px;
-    position: fixed;
-    z-index: 1;
-    width: 100%;
-    transform: translateY(-100%);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    opacity: 0;
-    z-index: 10;
-    filter: drop-shadow(rgb(51, 54, 57) 1px -1px 1px) !important;
-  }
-
-  .navbar-links-responsive.active {
-    transform: translateY(80px);
-    opacity: 1;
-  }
-
-  .navbar-links-responsive button {
+  .navbar-responsive-mobile-content button {
     max-width: 50%;
     width: 100%;
+  }
+
+  .navbar-responsive-mobile-content {
+    position: absolute;
+    left: 0;
+    max-width: 50%;
+    width: 100%;
+    min-width: 280px;
+    height: 100dvh;
+    min-height: 0px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 1;
+    flex-grow: 1;
+    overflow-y: auto;
+    z-index: 2;
+    pointer-events: auto;
   }
 }
 
@@ -216,4 +194,43 @@
   line-height: 20px;
   color: rgb(200, 36, 0);
   font-weight: 500;
+}
+
+/* sidenavbar styling */
+.navbar-responsive-mobile {
+  position: fixed;
+  display: flex;
+  left: 0;
+  bottom: 0;
+  top: 0;
+  right: 0;
+  z-index: 2;
+}
+
+@keyframes navbar-responsive-mobile-content-animation {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+@keyframes navbar-responsive-mobile-content-animation-close {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.navbar-responsive-mobile-content.active {
+  animation-name: navbar-responsive-mobile-content-animation;
+  animation-duration: 250ms;
+  animation-timing-function: ease;
+}
+.navbar-responsive-mobile-content.close {
+  animation-name: navbar-responsive-mobile-content-animation-close;
+  animation-duration: 250ms;
+  animation-timing-function: ease;
 }
