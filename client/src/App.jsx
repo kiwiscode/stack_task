@@ -1,13 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { UserContext } from "./Context/UserContext";
 import Dashboard from "../src/Pages/Dashboard";
-import SignUp from "./Pages/SignUp";
-import LogIn from "./Pages/Login";
 import { useContext } from "react";
 import Main from "./Pages/Main";
 
 function App() {
-  const { userInfo, getToken } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
 
   return (
     <div className="App">
@@ -19,8 +17,6 @@ function App() {
             userInfo && userInfo.active ? <Dashboard /> : <Navigate to="/" />
           }
         />
-        <Route path="/auth/login" element={<LogIn />} />
-        <Route path="/auth/signup" element={<SignUp />} />
       </Routes>
     </div>
   );

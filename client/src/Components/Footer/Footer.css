@@ -79,11 +79,20 @@
   flex-direction: column;
 }
 
+.footer-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
 @media (max-width: 768px) {
   .col-3 {
     grid-column: span 5;
     box-sizing: border-box;
   }
+
+  .footer-brand {
+    font-size: 1.25rem;
+  }
+
   .footer-copyright-text {
     grid-column: span 12;
   }

@@ -37,6 +37,10 @@ const taskSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    priority: {
+      type: Number,
+      enum: [1, 2, 3, 4],
+    },
   },
   {
     timestamps: true,

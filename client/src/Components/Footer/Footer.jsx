@@ -124,7 +124,7 @@ function Footer() {
                   color: "rgb(112, 112, 112)",
                 }}
               >
-                © 2024 Stack Task | Designed & Developed by Aykut Kav
+                © 2024 Stack Task | Designed & Developed by kiwisc0de
               </div>
             </div>
           )}
@@ -152,7 +152,7 @@ function Footer() {
             <svg
               style={{
                 padding: "8px 16px",
-                maxHeight: "33.5px",
+                maxHeight: width <= 768 ? "28px" : "33.5px",
                 flexShrink: 0,
               }}
               viewBox="0 0 100 100"
@@ -166,7 +166,7 @@ function Footer() {
             </svg>
 
             <div
-              className="navbar-brand"
+              className="footer-brand"
               style={{
                 color: themeName === "dark-theme" ? "white" : "#161d28",
               }}
@@ -187,7 +187,7 @@ function Footer() {
                   color: "rgb(112, 112, 112)",
                 }}
               >
-                © 2024 Stack Task | Designed & Developed by Aykut Kav
+                © 2024 Stack Task | Designed & Developed by kiwisc0de
               </div>
             </div>
           )}
@@ -212,7 +212,7 @@ function Footer() {
                   x="0px"
                   y="0px"
                   viewBox="0 0 18 18"
-                  xml:space="preserve"
+                  xmlSpace="preserve"
                   fill={themeName === "dark-theme" && "white"}
                 >
                   <polygon points="9.1,8.2 6.6,4.6 5.3,4.6 8.4,9.1 8.7,9.6 8.7,9.6 11.4,13.4 12.7,13.4 9.5,8.8  "></polygon>
@@ -276,6 +276,7 @@ function Footer() {
             </div>
             <div>
               <a
+                rel="noopener noreferrer"
                 target="_blank"
                 href="https://www.tiktok.com"
                 style={{
@@ -300,6 +301,7 @@ function Footer() {
             </div>
             <div>
               <a
+                rel="noopener noreferrer"
                 target="_blank"
                 href="https://open.spotify.com"
                 style={{

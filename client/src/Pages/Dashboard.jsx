@@ -13,12 +13,12 @@ import animationData from "../assets/loading-animation/loading-animation.json";
 import clearAnimationData from "../assets/clear-animation/celar-animation-3.json";
 import { useAntdMessageHandler } from "../utils/useAntdMessageHandler";
 import completedTaskSound from "../sounds/todo-completed-sound.mp3";
+import priorityClickedSound from "../sounds/priority-hover-sound.mp3";
 import { ThemeContext } from "../Context/ThemeContext";
 
 // when working on local version
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_APP_API_URL;
 
-// when working on deployment version ???
 function Dashboard() {
   const { themeName, toggleTheme } = useContext(ThemeContext);
 
@@ -36,6 +36,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const { width } = useWindowDimensions();
   const audio = new Audio(completedTaskSound);
+  const audio2 = new Audio(priorityClickedSound);
   const today = new Date();
   const dayNum = today.getDay();
   const monthNum = today.getMonth() + 1;
@@ -110,6 +111,7 @@ function Dashboard() {
 
   const [clearAllCompletedProcessing, setClearAllCompletedProcessing] =
     useState(false);
+  const [taskToEditId, setTaskToEditId] = useState(null);
 
   const handleShowLogoutPopover = (event) => {
     setAnchorElLogoutPopover(event.currentTarget);
@@ -132,8 +134,21 @@ function Dashboard() {
       return task.task.toLowerCase().includes(filterString.toLowerCase());
     });
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0];
+  };
+
   const closeAddTaskModal = () => {
     setShowAddTaskModal(false);
+    setTaskToEditId(null);
+    setNewTaskFormData({
+      task: "",
+      status: "todo",
+      category: "work",
+      startDate: "",
+      endDate: "",
+    });
   };
 
   const toggleExpand = (item) => {
@@ -257,7 +272,7 @@ function Dashboard() {
         getAllCompletedTasks();
       }, 300);
 
-      const undoCompleted = async (req, res) => {
+      const undoCompleted = async () => {
         try {
           await axios.patch(
             `${API_URL}/task/uncomplete/${taskToDelete}`,
@@ -304,7 +319,7 @@ function Dashboard() {
     });
   };
 
-  const addTask = async (addTaskAgainData) => {
+  const addTask = async () => {
     try {
       await axios.post(
         `${API_URL}/task`,
@@ -324,6 +339,7 @@ function Dashboard() {
         startDate: "",
         endDate: "",
       });
+      setTaskToEditId(null);
       closeAddTaskModal();
       setNewTaskInputValue("");
       getAllTasks();
@@ -447,7 +463,7 @@ function Dashboard() {
   }, [profileImage]);
 
   // delete task
-  const taskSoftDeletion = async (taskToDelete, task) => {
+  const taskSoftDeletion = async (taskToDelete) => {
     try {
       await axios.patch(
         `${API_URL}/task/delete/${taskToDelete}`,
@@ -462,7 +478,7 @@ function Dashboard() {
       getAllTasks();
       getAllInProgressTasks();
 
-      const undoTask = async (req, res) => {
+      const undoTask = async () => {
         try {
           await axios.patch(
             `${API_URL}/task/undo/${taskToDelete}`,
@@ -486,7 +502,7 @@ function Dashboard() {
       console.error("error:", error);
     }
   };
-  const completedTaskSoftDeletion = async (taskToDelete, task) => {
+  const completedTaskSoftDeletion = async (taskToDelete) => {
     try {
       await axios.patch(
         `${API_URL}/task/completed-tasks/delete/${taskToDelete}`,
@@ -500,7 +516,7 @@ function Dashboard() {
 
       getAllCompletedTasks();
 
-      const undoTask = async (req, res) => {
+      const undoTask = async () => {
         try {
           await axios.patch(
             `${API_URL}/task/completed-tasks/undo/${taskToDelete}`,
@@ -580,6 +596,64 @@ function Dashboard() {
     }
   };
 
+  // edit task
+  const taskEdit = async () => {
+    try {
+      const result = await axios.put(
+        `${API_URL}/task/${taskToEditId.taskId}/edit`,
+        { newTaskFormData },
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+
+      setShowCompletedTasks(false);
+      setNewTaskFormData({
+        task: "",
+        status: "todo",
+        category: "work",
+        startDate: "",
+        endDate: "",
+      });
+      setTaskToEditId(null);
+      closeAddTaskModal();
+      setNewTaskInputValue("");
+      getAllTasks();
+      getAllInProgressTasks();
+      getAllCompletedTasks();
+
+      console.log("result:", result);
+    } catch (error) {
+      console.error("error:", error);
+    }
+  };
+
+  // add priority
+
+  const addPriority = async (taskToAddPriority, priorityNum) => {
+    try {
+      await axios.patch(
+        `${API_URL}/task/${taskToAddPriority._id}`,
+        {
+          priority: priorityNum,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("error:", error);
+    }
+  };
+
+  const togglePriority = () => {
+    audio2.play();
+  };
+
   return (
     <>
       {contextHolder}
@@ -598,7 +672,7 @@ function Dashboard() {
         )}
         {/* add task modal */}
         <Modal
-          open={showAddTaskModal}
+          open={showAddTaskModal || taskToEditId}
           onClose={closeAddTaskModal}
           sx={{
             "& > .MuiBackdrop-root": {
@@ -635,11 +709,11 @@ function Dashboard() {
               {/* Add new task content */}
               <div
                 className={`add-new-task-modal-content ${
-                  themeName === "dark-theme" ? "dark-theme" : ""
+                  themeName === "dark-theme" ? "dark-theme" : "light-theme"
                 }`}
               >
                 <div className="task-modal-content-header">
-                  <div>Create new task</div>
+                  <div>{taskToEditId ? "Edit task" : "Create new task"}</div>
                   <div
                     style={{
                       height: "58px",
@@ -652,7 +726,6 @@ function Dashboard() {
                       onClick={closeAddTaskModal}
                       style={{
                         backgroundColor: "transparent",
-                        border: "none",
                         cursor: "pointer",
                         borderRadius: "3px",
                         border:
@@ -678,7 +751,6 @@ function Dashboard() {
                 </div>
                 <div>
                   <span>Task</span>
-
                   <input
                     value={newTaskFormData.task}
                     name="task"
@@ -747,11 +819,21 @@ function Dashboard() {
                 <div className="mt-40"></div>
                 <div
                   className={`btn-wrapper-add-new-task-modal ${
-                    themeName === "dark-theme" ? "dark-theme" : ""
+                    themeName === "dark-theme" ? "dark-theme" : "light-theme"
                   }`}
                 >
                   <button onClick={closeAddTaskModal}>Cancel</button>
-                  <button onClick={addTask}>Add task</button>
+                  <button
+                    onClick={() => {
+                      if (taskToEditId) {
+                        taskEdit();
+                      } else {
+                        addTask();
+                      }
+                    }}
+                  >
+                    {taskToEditId ? "Edit" : "Add task"}
+                  </button>
                 </div>
                 <div
                   style={{
@@ -881,7 +963,9 @@ function Dashboard() {
                   >
                     <div
                       className={`left-side-nav-box work-box ${
-                        themeName === "dark-theme" ? "dark-theme" : ""
+                        themeName === "dark-theme"
+                          ? "dark-theme"
+                          : "light-theme"
                       }`}
                     >
                       {showMyTasks === "work" && (
@@ -929,7 +1013,9 @@ function Dashboard() {
                   >
                     <div
                       className={`left-side-nav-box personal-box ${
-                        themeName === "dark-theme" ? "dark-theme" : ""
+                        themeName === "dark-theme"
+                          ? "dark-theme"
+                          : "light-theme"
                       }`}
                     >
                       {showMyTasks === "personal" && (
@@ -977,7 +1063,9 @@ function Dashboard() {
                   >
                     <div
                       className={`left-side-nav-box family-box ${
-                        themeName === "dark-theme" ? "dark-theme" : ""
+                        themeName === "dark-theme"
+                          ? "dark-theme"
+                          : "light-theme"
                       }`}
                     >
                       {" "}
@@ -1026,7 +1114,9 @@ function Dashboard() {
                   >
                     <div
                       className={`left-side-nav-box pet-box ${
-                        themeName === "dark-theme" ? "dark-theme" : ""
+                        themeName === "dark-theme"
+                          ? "dark-theme"
+                          : "light-theme"
                       }`}
                     >
                       {" "}
@@ -1158,11 +1248,21 @@ function Dashboard() {
                     marginBottom: expandedItem === "inbox" && "20px",
                   }}
                 >
-                  <div className="inbox-parent-individual-div">inbox</div>
-                  <div className="inbox-parent-individual-div">inbox</div>
-                  <div className="inbox-parent-individual-div">inbox</div>
-                  <div className="inbox-parent-individual-div">inbox</div>
-                  <div className="inbox-parent-individual-div">inbox</div>
+                  <div className="inbox-parent-individual-div">
+                    Urgent Tasks
+                  </div>
+                  <div className="inbox-parent-individual-div">
+                    Pending Requests
+                  </div>
+                  <div className="inbox-parent-individual-div">
+                    New Assignments
+                  </div>
+                  <div className="inbox-parent-individual-div">
+                    Action Items
+                  </div>
+                  <div className="inbox-parent-individual-div">
+                    Follow-Up Needed
+                  </div>
                 </div>
               </div>
               <div className="expandable-nav-meetings">
@@ -1260,17 +1360,21 @@ function Dashboard() {
                 <div
                   style={{
                     padding: "0px 12px",
-                    maxHeight: expandedItem === "meetings" ? "200px" : "0px",
+                    maxHeight: expandedItem === "meetings" ? "150px" : "0px",
                     overflow: "hidden",
                     transition: "max-height 0.25s ease-out",
                     marginBottom: expandedItem === "meetings" && "20px",
                   }}
                 >
-                  <div className="meetings-parent-individual-div">meeting</div>
-                  <div className="meetings-parent-individual-div">meeting</div>
-                  <div className="meetings-parent-individual-div">meeting</div>
-                  <div className="meetings-parent-individual-div">meeting</div>
-                  <div className="meetings-parent-individual-div">meeting</div>
+                  <div className="meetings-parent-individual-div">
+                    Project Status Update
+                  </div>
+                  <div className="meetings-parent-individual-div">
+                    Annual Strategy Meeting
+                  </div>
+                  <div className="meetings-parent-individual-div">
+                    Product Launch Planning
+                  </div>
                 </div>
               </div>
               <div className="expandable-nav-settings">
@@ -1384,7 +1488,7 @@ function Dashboard() {
                           display: "initial",
                         }}
                         fill={"grey"}
-                        class="moon-icon"
+                        className="moon-icon"
                         viewBox="0 0 24 24"
                       >
                         <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"></path>
@@ -1431,13 +1535,12 @@ function Dashboard() {
             <div
               style={{
                 fontSize: "12px",
-                color: "rgb(112, 112, 112)",
                 flexWrap: "wrap",
                 cursor: "default",
                 color: "rgb(112, 112, 112)",
               }}
             >
-              © 2024 Stack Task | Designed & Developed by Aykut Kav
+              © 2024 Stack Task | Designed & Developed by kiwisc0de
             </div>
           </div>{" "}
         </div>
@@ -1563,7 +1666,9 @@ function Dashboard() {
                   >
                     <div
                       className={`logout-option-wrapper logout-option logout-option-${
-                        themeName === "dark-theme" ? "dark-theme" : ""
+                        themeName === "dark-theme"
+                          ? "dark-theme"
+                          : "light-theme"
                       } pointer `}
                     >
                       <div
@@ -2092,10 +2197,17 @@ function Dashboard() {
                                             </div>
                                             <div className="second-content-priority-options">
                                               <div
+                                                onClick={() => {
+                                                  addPriority(task, 1);
+                                                  popupState.close();
+                                                }}
+                                                onMouseEnter={togglePriority}
                                                 className="pointer"
                                                 style={{
                                                   display: "flex",
                                                   alignItems: "center",
+                                                  maxWidth: "24px",
+                                                  maxHeight: "24px",
                                                 }}
                                               >
                                                 <LightTooltip title="Priority 1">
@@ -2114,6 +2226,11 @@ function Dashboard() {
                                                 </LightTooltip>
                                               </div>
                                               <div
+                                                onClick={() => {
+                                                  addPriority(task, 2);
+                                                  popupState.close();
+                                                }}
+                                                onMouseEnter={togglePriority}
                                                 className="pointer"
                                                 style={{
                                                   display: "flex",
@@ -2136,6 +2253,11 @@ function Dashboard() {
                                                 </LightTooltip>
                                               </div>
                                               <div
+                                                onClick={() => {
+                                                  addPriority(task, 3);
+                                                  popupState.close();
+                                                }}
+                                                onMouseEnter={togglePriority}
                                                 className="pointer"
                                                 style={{
                                                   display: "flex",
@@ -2158,6 +2280,11 @@ function Dashboard() {
                                                 </LightTooltip>
                                               </div>
                                               <div
+                                                onClick={() => {
+                                                  addPriority(task, 4);
+                                                  popupState.close();
+                                                }}
+                                                onMouseEnter={togglePriority}
                                                 className="pointer"
                                                 style={{
                                                   display: "flex",
@@ -2191,13 +2318,29 @@ function Dashboard() {
                                             </div>
                                           </div>
                                           <div
+                                            onClick={() => {
+                                              setTaskToEditId({
+                                                taskId: task._id,
+                                              });
+                                              setNewTaskFormData({
+                                                task: task.task,
+                                                status: task.status,
+                                                category: task.category,
+                                                startDate: task.startDate
+                                                  ? formatDate(task.startDate)
+                                                  : "undefined",
+                                                endDate: task.endDate
+                                                  ? formatDate(task.endDate)
+                                                  : "undefined",
+                                              });
+                                            }}
                                             className={`content-wrapper edit-option edit-option-${
                                               themeName === "dark-theme"
                                                 ? "dark-theme"
-                                                : ""
+                                                : "light-theme"
                                             } pointer `}
                                           >
-                                            <div className="first-content-popover ">
+                                            <div className="first-content-popover">
                                               <div>
                                                 <svg
                                                   width={16}
@@ -2238,7 +2381,7 @@ function Dashboard() {
                                             className={`content-wrapper delete-option delete-option-${
                                               themeName === "dark-theme"
                                                 ? "dark-theme"
-                                                : ""
+                                                : "light-theme"
                                             } pointer `}
                                             onClick={() => {
                                               taskSoftDeletion(task._id, task);
@@ -2302,7 +2445,7 @@ function Dashboard() {
                                   className={`category-${task.category.toLowerCase()} ${
                                     themeName === "dark-theme"
                                       ? "dark-theme"
-                                      : ""
+                                      : "light-theme"
                                   }`}
                                 >
                                   {task.category.charAt(0).toUpperCase() +
@@ -2472,6 +2615,11 @@ function Dashboard() {
                                             </div>
                                             <div className="second-content-priority-options">
                                               <div
+                                                onClick={() => {
+                                                  addPriority(task, 1);
+                                                  popupState.close();
+                                                }}
+                                                onMouseEnter={togglePriority}
                                                 className="pointer"
                                                 style={{
                                                   display: "flex",
@@ -2494,6 +2642,11 @@ function Dashboard() {
                                                 </LightTooltip>
                                               </div>
                                               <div
+                                                onClick={() => {
+                                                  addPriority(task, 2);
+                                                  popupState.close();
+                                                }}
+                                                onMouseEnter={togglePriority}
                                                 className="pointer"
                                                 style={{
                                                   display: "flex",
@@ -2516,6 +2669,11 @@ function Dashboard() {
                                                 </LightTooltip>
                                               </div>
                                               <div
+                                                onClick={() => {
+                                                  addPriority(task, 3);
+                                                  popupState.close();
+                                                }}
+                                                onMouseEnter={togglePriority}
                                                 className="pointer"
                                                 style={{
                                                   display: "flex",
@@ -2538,6 +2696,11 @@ function Dashboard() {
                                                 </LightTooltip>
                                               </div>
                                               <div
+                                                onClick={() => {
+                                                  addPriority(task, 4);
+                                                  popupState.close();
+                                                }}
+                                                onMouseEnter={togglePriority}
                                                 className="pointer"
                                                 style={{
                                                   display: "flex",
@@ -2571,10 +2734,26 @@ function Dashboard() {
                                             </div>
                                           </div>
                                           <div
+                                            onClick={() => {
+                                              setTaskToEditId({
+                                                taskId: task._id,
+                                              });
+                                              setNewTaskFormData({
+                                                task: task.task,
+                                                status: task.status,
+                                                category: task.category,
+                                                startDate: task.startDate
+                                                  ? formatDate(task.startDate)
+                                                  : null,
+                                                endDate: task.endDate
+                                                  ? formatDate(task.endDate)
+                                                  : null,
+                                              });
+                                            }}
                                             className={`content-wrapper edit-option edit-option-${
                                               themeName === "dark-theme"
                                                 ? "dark-theme"
-                                                : ""
+                                                : "light-theme"
                                             } pointer `}
                                           >
                                             <div className="first-content-popover ">
@@ -2618,7 +2797,7 @@ function Dashboard() {
                                             className={`content-wrapper delete-option delete-option-${
                                               themeName === "dark-theme"
                                                 ? "dark-theme"
-                                                : ""
+                                                : "light-theme"
                                             } pointer `}
                                             onClick={() => {
                                               completedTaskSoftDeletion(
@@ -2684,7 +2863,7 @@ function Dashboard() {
                                   className={`category-${task.category.toLowerCase()} ${
                                     themeName === "dark-theme"
                                       ? "dark-theme"
-                                      : ""
+                                      : "light-theme"
                                   }`}
                                 >
                                   {task.category.charAt(0).toUpperCase() +

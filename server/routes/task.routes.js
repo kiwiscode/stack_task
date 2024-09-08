@@ -12,6 +12,7 @@ router.post("/", authenticateToken, async (req, res) => {
     const { task, status, category, startDate, endDate } =
       req.body.newTaskFormData;
 
+    console.log("req.body:", req.body);
     const { userId } = req.user;
 
     const taskData = {
@@ -69,6 +70,7 @@ router.get("/in-progress", authenticateToken, async (req, res) => {
     const tasks = await Task.find({
       user: req.user.userId,
       deleted: false,
+      completed: false,
       status: "in-progress",
     });
 
@@ -328,5 +330,131 @@ router.patch(
     }
   }
 );
+
+// edit task
+router.put("/:id/edit", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { task, status, category, startDate, endDate } =
+      req.body.newTaskFormData;
+    const { userId } = req.user;
+
+    const updatedTaskData = {
+      task,
+      status,
+      category,
+      startDate: startDate !== "undefined" ? startDate : null,
+      endDate: endDate !== "undefined" ? endDate : null,
+      user: userId,
+    };
+
+    let savedTask;
+
+    let existingTask = await Task.findById(id);
+
+    if (existingTask) {
+      if (status === "completed") {
+        const newCompletedTaskData = {
+          task,
+          status: "completed",
+          taskId: existingTask._id,
+          user: existingTask.user,
+          category,
+          startDate: startDate !== "undefined" ? startDate : null,
+          endDate: endDate !== "undefined" ? endDate : null,
+        };
+
+        const newCompletedTask = new CompletedTask(newCompletedTaskData);
+        await newCompletedTask.save();
+
+        existingTask.completed = true;
+        await existingTask.save();
+
+        return res.status(200).json(newCompletedTask);
+      } else {
+        savedTask = await Task.findByIdAndUpdate(id, updatedTaskData, {
+          new: true,
+          runValidators: true,
+        });
+
+        return res.status(200).json(savedTask);
+      }
+    }
+
+    let existingCompletedTask = await CompletedTask.findById(id);
+
+    if (existingCompletedTask) {
+      if (status === "completed") {
+        existingCompletedTask.task = task;
+        existingCompletedTask.category = category;
+        existingCompletedTask.startDate =
+          startDate !== "undefined" ? startDate : null;
+        existingCompletedTask.endDate =
+          endDate !== "undefined" ? endDate : null;
+        await existingCompletedTask.save();
+
+        return res.status(200).json(existingCompletedTask);
+      } else {
+        existingCompletedTask.deleted = true;
+        await existingCompletedTask.save();
+
+        const newTaskData = {
+          task,
+          status: status !== "undefined" ? status : "todo",
+          category,
+          startDate: startDate !== "undefined" ? startDate : null,
+          endDate: endDate !== "undefined" ? endDate : null,
+          user: userId,
+        };
+
+        const newTask = new Task(newTaskData);
+        await newTask.save();
+
+        return res.status(200).json(newTask);
+      }
+    }
+
+    return res.status(404).json({ message: "Task not found" });
+  } catch (error) {
+    console.error("Error:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to update task", error: error.message });
+  }
+});
+
+// add priority to a task by its taskId
+router.patch("/:taskId", async (req, res) => {
+  const { taskId } = req.params;
+  const { priority } = req.body;
+
+  console.log("priority num:", priority);
+
+  if (![1, 2, 3, 4].includes(priority)) {
+    return res.status(400).json({ error: "Invalid priority value" });
+  }
+
+  try {
+    let task = await Task.findById(taskId);
+
+    if (!task) {
+      task = await CompletedTask.findById(taskId);
+    }
+
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    task.priority = priority;
+    await task.save();
+
+    res.json({ message: "Priority updated successfully", task });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while updating the task" });
+  }
+});
 
 module.exports = router;

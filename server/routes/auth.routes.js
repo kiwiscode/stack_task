@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
-const mongoose = require("mongoose");
 const saltRounds = 10;
 
 const User = require("../models/User.model");
@@ -12,126 +11,115 @@ const capitalize = require("../helpers/capitalize");
 
 require("dotenv").config();
 
-router.post("/signup", (req, res, next) => {
-  let { name, username, email, password } = req.body;
+router.post("/signup", async (req, res) => {
+  let { name, username, email, password } = req.body.signUpFormData;
 
-  name = capitalize(name);
-  if (name === "" || username === "" || email === "" || password === "") {
-    res.status(500).json({ error: "All fields are mandatory." });
-    return;
-  }
+  try {
+    name = capitalize(name);
+    if (!name || !username || !email || !password) {
+      return res.status(400).json({ error: "All fields are mandatory." });
+    }
 
-  if (password.length < 6) {
-    res
-      .status(402)
-      .json({ error: "Your password needs to be at least 6 characters long." });
-    return;
-  }
+    const existingUserByUsername = await User.findOne({ username });
+    if (existingUserByUsername) {
+      return res.status(400).json({ message: "Username is already taken" });
+    }
 
-  const regex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
-  if (!regex.test(password)) {
-    res.status(402).json({
-      error:
-        "Password needs to have at least 6 chars and must contain at least one number, one lowercase and one uppercase letter.",
+    const existingUserByEmail = await User.findOne({ email });
+    if (existingUserByEmail) {
+      return res.status(400).json({ message: "Email is already registered" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email format." });
+    }
+
+    const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
+    if (!passwordRegex.test(password)) {
+      return res.status(422).json({
+        error:
+          "Password needs to have at least 6 characters and must contain at least one number, one lowercase and one uppercase letter.",
+      });
+    }
+
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = new User({
+      name,
+      username,
+      email,
+      password: hashedPassword,
     });
-  }
 
-  bcrypt
-    .genSalt(saltRounds)
-    .then((salt) => bcrypt.hash(password, salt))
-    .then((hashedPassword) => {
-      return User.create({
+    await user.save();
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+
+    res.status(201).json({ token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/login", async (req, res) => {
+  const { authenticationType, password } = req.body.loginFormData;
+
+  try {
+    if (!authenticationType || !password) {
+      return res.status(403).json({
+        error:
+          "All fields are mandatory. Please provide username/email and password.",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(402).json({
+        error: "Your password needs to be at least 6 characters long.",
+      });
+    }
+
+    const user = await User.findOne({
+      $or: [{ email: authenticationType }, { username: authenticationType }],
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: "Wrong credentials." });
+    }
+
+    const isSamePassword = await bcrypt.compare(password, user.password);
+    if (!isSamePassword) {
+      return res.status(401).json({ error: "Wrong credentials." });
+    }
+
+    user.active = true;
+    const updatedUser = await user.save();
+
+    const { _id, name, username, email, active, profilePicture } = updatedUser;
+
+    const token = jwt.sign({ userId: _id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+
+    return res.json({
+      token,
+      user: {
+        _id,
         name,
         username,
         email,
-        password: hashedPassword,
-        profilePicture: "",
-      });
-    })
-    .then((user) => {
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-        expiresIn: "24h", // Token duration
-      });
-      res.status(200).json({ token });
-    })
-    .catch((error) => {
-      if (error instanceof mongoose.Error.ValidationError) {
-        res.status(501).json({
-          error:
-            "Username and email need to be unique.Provide a valid username or email",
-        });
-      } else if (error.code === 11000) {
-        res.status(501).json({
-          error:
-            "Username and email need to be unique.Provide a valid username or email",
-        });
-      } else {
-        next(error);
-      }
+        active,
+        profilePicture,
+      },
     });
-});
-
-router.post("/login", (req, res) => {
-  const { username, email, password } = req.body;
-
-  if (username === "" || email === "" || password === "") {
-    res.status(403).json({
-      error:
-        "All fields are mandatory.Please provide username,email and password.",
-    });
-    return;
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
-
-  if (password.length < 6) {
-    return res
-      .status(402)
-      .json({ error: "Your password needs to be at least 6 characters long." });
-  }
-
-  User.findOne({ email })
-    .then((user) => {
-      if (!user) {
-        res.status(401).json({ error: "Wrong credentials." });
-        return;
-      }
-
-      // If user is found based on the username, check if the input password matches the one saved in the database
-      bcrypt
-        .compare(password, user.password)
-        .then((isSamePassword) => {
-          if (
-            !isSamePassword ||
-            user.username !== username ||
-            user.email !== email
-          ) {
-            res.status(401).json({ error: "Wrong credentials." });
-            return;
-          }
-          user.active = true;
-          user.save().then((user) => {
-            const { _id, name, username, email, active, profilePicture } = user;
-
-            // with token
-            const token = jwt.sign({ userId: _id }, process.env.JWT_SECRET, {
-              expiresIn: "24h",
-            });
-
-            res.json({
-              token,
-              user: {
-                _id,
-                name,
-                username,
-                email,
-                active,
-                profilePicture,
-              },
-            });
-          });
-        })
-        .catch((error) => next(error));
-    })
-    .catch((error) => next(error));
 });
 
 module.exports = router;
