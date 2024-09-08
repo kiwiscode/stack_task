@@ -78,7 +78,7 @@ router.post("/login", async (req, res) => {
     }
 
     if (password.length < 6) {
-      return res.status(402).json({
+      return res.status(400).json({
         error: "Your password needs to be at least 6 characters long.",
       });
     }

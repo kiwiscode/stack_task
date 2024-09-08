@@ -1,11 +1,6 @@
 const mongoose = require("mongoose");
 
-// when working on deploy version
-// const MONGO_URI = "mongodb://127.0.0.1:27017/mern-todo-list-project";
-
-// when working on deployment version
-const MONGO_URI =
-  "mongodb+srv://aykutkavdev:x66lL52dkhzbkelo@stack-task.f4amp.mongodb.net/stack-task";
+const MONGO_URI = process.env.MONGO_URI;
 
 mongoose
   .connect(MONGO_URI)
