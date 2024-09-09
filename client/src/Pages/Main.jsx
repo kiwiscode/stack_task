@@ -7,6 +7,7 @@ import Marquee from "react-fast-marquee";
 import Footer from "../Components/Footer/Footer";
 import SpotifyLogoData from "../assets/spotify-logo-for-marquee/Spotify New 2024.png";
 import { AuthenticationModalContext } from "../Context/AuthenticationModalContext";
+import { UserContext } from "../Context/UserContext";
 
 function Main() {
   const { themeName } = useContext(ThemeContext);

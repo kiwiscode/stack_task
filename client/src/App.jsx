@@ -1,11 +1,24 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { UserContext } from "./Context/UserContext";
 import Dashboard from "../src/Pages/Dashboard";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import Main from "./Pages/Main";
 
 function App() {
-  const { userInfo } = useContext(UserContext);
+  const { userInfo, getToken } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = getToken();
+
+    if (token) {
+      // Eğer token varsa user aktiftir, dashboarda yönlendir
+      navigate("/dashboard");
+    } else {
+      // Eğer token yoksa ana sayfaya yönlendir
+      navigate("/");
+    }
+  }, [navigate]);
 
   return (
     <div
