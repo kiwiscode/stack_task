@@ -3,7 +3,7 @@ require("dotenv").config();
 
 // database url
 const MONGODB_URL = process.env.MONGODB_URL;
-//
+
 console.log("connected to:", MONGODB_URL);
 mongoose
   .connect(MONGODB_URL)
