@@ -1,4 +1,4 @@
-# ![Project Logo](../stack-task/client/src/assets/logo.png): Chat Application
+# ![Project Logo](https://res.cloudinary.com/ddqbb9yqj/image/upload/v1725843249/project_logo/stack-task/stack-task-logo_ebiwlt.png): Chat Application
 
 This project is a todo application that allows users to manage their tasks efficiently. Users can create tasks by selecting categories such as 'work,' 'personal,' 'family,' or 'pet.' They can assign due dates, edit, delete, and prioritize tasks based on importance.
 
@@ -51,8 +51,8 @@ This project is a todo application that allows users to manage their tasks effic
 
 3. **Database Setup**:
 
-   - **Supabase**: You can use Supabase to host your PostgreSQL database. Create a PostgreSQL database on Supabase and add the connection details to the `.env` file.
-   - **Local**: Alternatively, you can set up a PostgreSQL database locally. Use pgAdmin or a similar tool to manage the database and update the connection details in the `.env` file.
+   - **MongoDB Atlas**: You can use MongoDB Atlas to host your MongoDB database. Create a MongoDB database on MongoDB Atlas and add the connection details to the `.env` file.
+   - **Local**: Alternatively, you can set up a MongoDB database locally. Use MongoDB Compass or a similar tool to manage the database and update the connection details in the `.env` file.
 
 4. **Start the Server**:
    ```bash
