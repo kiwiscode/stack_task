@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
 
 // database url
-const MONGO_URI =
-  "mongodb+srv://aykutkavdev:x66lL52dkhzbkelo@stack-task.f4amp.mongodb.net/stack-task";
+const MONGODB_URL = process.env.MONGODB_URL;
 
 mongoose
-  .connect(MONGO_URI)
+  .connect(MONGODB_URL)
   .then((x) => {
     const databaseName = x.connections[0].name;
     console.log(`Mongoose connected ${databaseName}`);

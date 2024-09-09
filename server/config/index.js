@@ -22,7 +22,7 @@ module.exports = (app) => {
       // when working on local version
       // origin: "http://localhost:5173",
       // when working on deployment version
-      origin: process.env.FRONTEND_URI,
+      origin: process.env.FRONTEND_URL,
     })
   );
 };
