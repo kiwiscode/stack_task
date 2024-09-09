@@ -1,4 +1,9 @@
-# ![Project Logo](https://res.cloudinary.com/ddqbb9yqj/image/upload/v1725843249/project_logo/stack-task/stack-task-logo_ebiwlt.png): Chat Application
+# <div style="display: flex; align-items: center; gap: 10px;">
+
+    <img src="https://res.cloudinary.com/ddqbb9yqj/image/upload/v1725843249/project_logo/stack-task/stack-task-logo_ebiwlt.png" alt="Project Logo" height="33.5px">
+    <h1>Stack Task</h1>
+
+</div>
 
 This project is a todo application that allows users to manage their tasks efficiently. Users can create tasks by selecting categories such as 'work,' 'personal,' 'family,' or 'pet.' They can assign due dates, edit, delete, and prioritize tasks based on importance.
 
