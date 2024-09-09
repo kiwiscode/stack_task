@@ -695,17 +695,17 @@ function Dashboard() {
           <div
             ref={addTaskModalRef}
             style={{
-              borderRadius: "5px",
               position: "absolute",
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              width: width <= 768 ? "98%" : 600,
-              maxHeight: "95vh",
-              height: width <= 768 && "95vh",
-              backgroundColor: themeName === "dark-theme" ? "#091017" : "white",
+              width: width <= 768 ? "100%" : 410,
+              maxHeight: width <= 768 ? "100dvh" : "90dvh",
+              height: width <= 768 && "100dvh",
+              backgroundColor: themeName === "dark-theme" ? "black" : "white",
               outlineStyle: "none",
               overflowY: "auto",
+              borderRadius: "0.25rem",
               boxShadow:
                 "0 0 15px rgba(101, 119, 134, 0.2),0 0 5px 3px rgba(101, 119, 134, 0.15)",
             }}
