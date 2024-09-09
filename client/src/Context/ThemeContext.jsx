@@ -31,6 +31,14 @@ export const ThemeProvider = ({ children }) => {
     }
   }, []);
 
+  useEffect(() => {
+    if (themeName === "dark-theme") {
+      document.documentElement.style.setProperty("color-scheme", "dark");
+    } else {
+      document.documentElement.style.setProperty("color-scheme", "light");
+    }
+  }, [themeName]);
+
   return (
     <ThemeContext.Provider value={{ themeName, toggleTheme }}>
       {children}

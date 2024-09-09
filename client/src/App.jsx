@@ -8,7 +8,12 @@ function App() {
   const { userInfo } = useContext(UserContext);
 
   return (
-    <div className="App">
+    <div
+      className="App"
+      style={{
+        colorScheme: "dark",
+      }}
+    >
       <Routes>
         <Route path="/" element={<Main />} />
         <Route

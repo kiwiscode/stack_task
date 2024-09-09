@@ -176,13 +176,15 @@ function Main() {
 
   useEffect(() => {
     const updateActiveIndices = (index) => {
-      if (index !== 13) {
+      if (index !== comments.length - 2) {
         const nextIndices = [
           index,
           (index + 1) % comments.length,
           (index + 2) % comments.length,
         ];
         setActiveIndices(nextIndices);
+      } else {
+        setActiveIndices([0, 1, 2]);
       }
     };
 
@@ -211,14 +213,15 @@ function Main() {
       });
     };
 
+    console.log("active indicies:", activeIndices);
+    console.log("comments.length:", comments.length);
+
     const intervalId = setInterval(incrementTranslateX, interval);
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [comments.length]);
-
-  console.log("active indicies:", activeIndices);
+  }, [comments.length, activeIndices]);
 
   return (
     <>
