@@ -77,10 +77,16 @@ This project is a todo application that allows users to manage their tasks effic
 
 ## Usage
 
-- **Register and Login**: Users can create a new account or log in with existing credentials.
-- **Add Friends and Coworkers**: Users can search for and add both friends and coworkers.
-- **Real-Time Chat**: Communicate with added friends in real-time.
-- **Profile Management**: Users can update their profile pictures.
+- **Register and Login**: Users can create a new account or log in with existing credentials to access their task management dashboard.
+- **Task Management**: Users can create, edit, delete, and prioritize tasks. Tasks can be categorized into 'work,' 'personal,' 'family,' or 'pet,' and assigned due dates.
+- **Task Filtering and Searching**: Users can filter tasks by category or search for specific tasks using keywords.
+- **Theme Switching**: Users can switch between dark and light theme modes based on their preference.
+- **Greeting Messages**: The application displays greeting messages such as 'Good Morning,' 'Good Afternoon,' 'Good Evening,' and 'Good Night' based on the time of day.
+- **Task Status Tracking**: Users can track tasks as 'in progress,' 'todo,' or 'completed.' Tasks can be viewed and managed according to their status.
+- **Task Restoration**: Soft deleted tasks can be restored within a certain time frame, and hard deleted tasks can also be recovered within a specified period.
+- **Responsive Design**: The application is fully responsive and optimized for various devices and screen sizes.
+- **Image and Media Upload**: Users can upload images and media files, which are managed through Cloudinary.
+- **Secure Authentication**: User authentication and password storage are handled securely to protect user information.
 
 ## Contributing
 
