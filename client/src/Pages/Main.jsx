@@ -176,12 +176,14 @@ function Main() {
 
   useEffect(() => {
     const updateActiveIndices = (index) => {
-      const nextIndices = [
-        index,
-        (index + 1) % comments.length,
-        (index + 2) % comments.length,
-      ];
-      setActiveIndices(nextIndices);
+      if (index !== 13) {
+        const nextIndices = [
+          index,
+          (index + 1) % comments.length,
+          (index + 2) % comments.length,
+        ];
+        setActiveIndices(nextIndices);
+      }
     };
 
     const incrementTranslateX = () => {
@@ -190,24 +192,33 @@ function Main() {
         if (newTranslateX >= (comments.length - 2) * increment) {
           setActiveIndex(0);
           updateActiveIndices(0);
+          console.log("last hit 1");
           return 0;
         } else {
+          console.log("last hit 2");
           return newTranslateX;
         }
       });
+      console.log("last hit 3");
+
+      // bug buradan kaynaklanıyor !!! son 3 lüde 13,14,15 dönmesi gerek arrayin
       setActiveIndex((prevIndex) => {
         const newIndex = (prevIndex + 1) % comments.length;
         updateActiveIndices(newIndex);
+
+        console.log("new index:", newIndex);
         return newIndex;
       });
     };
 
     const intervalId = setInterval(incrementTranslateX, interval);
 
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [comments.length]);
 
-  // open login modal
+  console.log("active indicies:", activeIndices);
 
   return (
     <>
