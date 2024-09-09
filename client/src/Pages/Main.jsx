@@ -206,8 +206,11 @@ function Main() {
       // bug buradan kaynaklanıyor !!! son 3 lüde 13,14,15 dönmesi gerek arrayin
       setActiveIndex((prevIndex) => {
         const newIndex = (prevIndex + 1) % comments.length;
-        updateActiveIndices(newIndex);
-
+        if (newIndex === comments.length - 2) {
+          setActiveIndices([0, 1, 2]);
+        } else {
+          updateActiveIndices(newIndex);
+        }
         console.log("new index:", newIndex);
         return newIndex;
       });
