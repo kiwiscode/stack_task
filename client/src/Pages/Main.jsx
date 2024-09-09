@@ -189,19 +189,38 @@ function Main() {
     };
 
     const incrementTranslateX = () => {
+      // setTranslateX((prev) => {
+      //   console.log("new translate x:", newTranslateX);
+
+      //   const newTranslateX = prev + increment;
+
+      //     if (newTranslateX >= (comments.length - 2) * increment) {
+      //       setActiveIndex(0);
+      //       updateActiveIndices(0);
+      //       return 0;
+      //     } else {
+      //       return newTranslateX;
+      //     }
+
+      // });
       setTranslateX((prev) => {
         const newTranslateX = prev + increment;
-        if (newTranslateX >= (comments.length - 2) * increment) {
+
+        if (newTranslateX > 66.66672) {
+          console.log("new translate x:", newTranslateX);
           setActiveIndex(0);
           updateActiveIndices(0);
-          console.log("last hit 1");
+          return 0;
+        } else if (newTranslateX >= (comments.length - 2) * increment) {
+          console.log("new translate x 2:", newTranslateX);
+          setActiveIndex(0);
+          updateActiveIndices(0);
           return 0;
         } else {
-          console.log("last hit 2");
+          console.log("new translate x 3:", newTranslateX);
           return newTranslateX;
         }
       });
-      console.log("last hit 3");
 
       // bug buradan kaynaklanıyor !!! son 3 lüde 13,14,15 dönmesi gerek arrayin
       setActiveIndex((prevIndex) => {
@@ -217,7 +236,6 @@ function Main() {
     };
 
     console.log("active indicies:", activeIndices);
-    console.log("comments.length:", comments.length);
 
     const intervalId = setInterval(incrementTranslateX, interval);
 
