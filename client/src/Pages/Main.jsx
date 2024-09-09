@@ -189,35 +189,14 @@ function Main() {
     };
 
     const incrementTranslateX = () => {
-      // setTranslateX((prev) => {
-      //   console.log("new translate x:", newTranslateX);
-
-      //   const newTranslateX = prev + increment;
-
-      //     if (newTranslateX >= (comments.length - 2) * increment) {
-      //       setActiveIndex(0);
-      //       updateActiveIndices(0);
-      //       return 0;
-      //     } else {
-      //       return newTranslateX;
-      //     }
-
-      // });
       setTranslateX((prev) => {
         const newTranslateX = prev + increment;
-
-        if (newTranslateX > 66.66672) {
-          console.log("new translate x:", newTranslateX);
-          setActiveIndex(0);
-          updateActiveIndices(0);
-          return 0;
-        } else if (newTranslateX >= (comments.length - 2) * increment) {
-          console.log("new translate x 2:", newTranslateX);
+        console.log("new translate x:", newTranslateX);
+        if (newTranslateX >= (comments.length - 2) * increment) {
           setActiveIndex(0);
           updateActiveIndices(0);
           return 0;
         } else {
-          console.log("new translate x 3:", newTranslateX);
           return newTranslateX;
         }
       });
@@ -242,7 +221,7 @@ function Main() {
     return () => {
       clearInterval(intervalId);
     };
-  }, [comments.length, activeIndices]);
+  }, [comments.length]);
 
   return (
     <>

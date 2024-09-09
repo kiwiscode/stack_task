@@ -1731,6 +1731,10 @@ function Dashboard() {
                   }}
                 >
                   <input
+                    style={{
+                      colorScheme:
+                        themeName === "dark-theme" ? "dark" : "light",
+                    }}
                     className={`mt-5 default-value-input ${
                       themeName === "dark-theme" ? "dark-theme" : "light-theme"
                     }`}

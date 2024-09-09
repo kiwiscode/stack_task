@@ -177,6 +177,8 @@ body {
   border: 1px solid rgb(231, 231, 231);
   outline-style: none;
   width: 100%;
+  background-color: transparent;
+  color: black;
 }
 
 .add-new-task-input {
@@ -184,6 +186,8 @@ body {
   border: 1px solid rgb(231, 231, 231);
   outline-style: none;
   width: 100%;
+  background-color: transparent;
+  color: black;
 }
 
 .input-search-icon {
@@ -599,6 +603,8 @@ body {
 }
 .default-value-input {
   border-radius: 5px;
+  background-color: white;
+  border: 1px solid rgb(231, 231, 231);
 }
 /* for chrome Remove default text/placeholder from date input */
 .default-value-input[type="date"]:in-range::-webkit-datetime-edit-year-field,
