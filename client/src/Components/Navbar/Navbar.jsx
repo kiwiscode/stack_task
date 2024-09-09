@@ -461,7 +461,7 @@ function Navbar() {
                     <input
                       name="authenticationType"
                       type="text"
-                      id="authenticationType"
+                      id="authenticationType-input"
                       value={loginFormData.authenticationType}
                       onChange={handleChangeLoginFormData}
                       placeholder="Enter your email or username"
@@ -486,7 +486,7 @@ function Navbar() {
                     <input
                       name="password"
                       type="password"
-                      id="password"
+                      id="password-input"
                       value={loginFormData.password}
                       onChange={handleChangeLoginFormData}
                       placeholder="Enter your password"
@@ -569,7 +569,7 @@ function Navbar() {
                     <input
                       name="name"
                       type="text"
-                      id="name"
+                      id="name-input"
                       value={signUpFormData.name}
                       onChange={handleChangeSignupFormData}
                       placeholder="Enter your name"
@@ -593,7 +593,7 @@ function Navbar() {
                     <input
                       name="username"
                       type="text"
-                      id="username"
+                      id="username-input"
                       value={signUpFormData.username}
                       onChange={handleChangeSignupFormData}
                       placeholder="Enter your username"
@@ -617,7 +617,7 @@ function Navbar() {
                     <input
                       name="email"
                       type="text"
-                      id="email"
+                      id="email-input"
                       value={signUpFormData.email}
                       onChange={handleChangeSignupFormData}
                       placeholder="Enter your email"
@@ -642,7 +642,7 @@ function Navbar() {
                     <input
                       name="password"
                       type="password"
-                      id="password"
+                      id="password-input"
                       value={signUpFormData.password}
                       onChange={handleChangeSignupFormData}
                       placeholder="Enter your password"
