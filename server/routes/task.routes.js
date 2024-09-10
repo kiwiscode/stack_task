@@ -10,7 +10,6 @@ router.post("/", authenticateToken, async (req, res) => {
     const { task, status, category, startDate, endDate } =
       req.body.newTaskFormData;
 
-    console.log("req.body:", req.body);
     const { userId } = req.user;
 
     const taskData = {
@@ -425,8 +424,6 @@ router.put("/:id/edit", authenticateToken, async (req, res) => {
 router.patch("/:taskId", async (req, res) => {
   const { taskId } = req.params;
   const { priority } = req.body;
-
-  console.log("priority num:", priority);
 
   if (![1, 2, 3, 4].includes(priority)) {
     return res.status(400).json({ error: "Invalid priority value" });

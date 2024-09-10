@@ -413,7 +413,6 @@ function Dashboard() {
 
       logout();
       navigate("/");
-      console.log("result after logout:", result);
     } catch (error) {
       console.error("error:", error);
     }
@@ -449,7 +448,6 @@ function Dashboard() {
         }
       );
 
-      console.log("result after changing image:", result.data.imageInfo.url);
       updateUser({ profilePicture: result.data.imageInfo.url });
       setProfileImage("");
       if (result.data.imageInfo.url) {
@@ -628,8 +626,6 @@ function Dashboard() {
       getAllTasks();
       getAllInProgressTasks();
       getAllCompletedTasks();
-
-      console.log("result:", result);
     } catch (error) {
       console.error("error:", error);
     }

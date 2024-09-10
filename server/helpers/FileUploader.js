@@ -3,15 +3,11 @@ const User = require("../models/User.model");
 
 const handleProfilePicture = async (req, res) => {
   try {
-    console.log("1");
     const { image } = req.body;
-    console.log("2");
 
     const userId = req.params.userId;
-    console.log("3");
 
     const user = await User.findById(userId);
-    console.log("4");
 
     if (!user) {
       return res.status(404).json({ errorMessage: "USER NOT FOUND!" });

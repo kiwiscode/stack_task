@@ -192,7 +192,6 @@ function Main() {
     const incrementTranslateX = () => {
       setTranslateX((prev) => {
         const newTranslateX = prev + increment;
-        console.log("new translate x:", newTranslateX);
         if (newTranslateX >= (comments.length - 2) * increment) {
           setActiveIndex(0);
           updateActiveIndices(0);
@@ -210,12 +209,9 @@ function Main() {
         } else {
           updateActiveIndices(newIndex);
         }
-        console.log("new index:", newIndex);
         return newIndex;
       });
     };
-
-    console.log("active indicies:", activeIndices);
 
     const intervalId = setInterval(incrementTranslateX, interval);
 

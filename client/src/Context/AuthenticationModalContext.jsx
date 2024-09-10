@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState } from "react";
 import PropTypes from "prop-types";
 
 const AuthenticationModalContext = createContext();
@@ -7,13 +7,6 @@ const AuthenticationModalProvider = ({ children }) => {
   const [authenticationModalOpened, setAuthenticationModalOpened] =
     useState(false);
   const [showRegisterTab, setShowRegisterTab] = useState(false);
-
-  useEffect(() => {
-    console.log(
-      "global context contact modal status:",
-      authenticationModalOpened
-    );
-  }, [authenticationModalOpened]);
 
   return (
     <AuthenticationModalContext.Provider

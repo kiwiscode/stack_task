@@ -172,7 +172,6 @@ function Navbar() {
       localStorage.setItem("token", token);
       localStorage.setItem("userInfo", JSON.stringify(user));
 
-      console.log("result:", result);
       setTimeout(() => {
         updateUser(user);
         setAuthenticationError("");
@@ -199,8 +198,6 @@ function Navbar() {
       setTimeout(() => {
         setAuthLoading(false);
       }, 1000);
-
-      console.log("result:", result);
     } catch (error) {
       console.error("error:", error);
       if (error) {
