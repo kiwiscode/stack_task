@@ -19,9 +19,6 @@ module.exports = (app) => {
   // CORS MIDDLEWARE INSIDE module.exports TO ALLOW CROSS-ORIGIN INTERACTION:
   app.use(
     cors({
-      // when working on local version
-      // origin: "http://localhost:5173",
-      // when working on deployment version
       origin: process.env.FRONTEND_URL,
     })
   );
