@@ -124,7 +124,19 @@ function Footer() {
                   color: "rgb(112, 112, 112)",
                 }}
               >
-                © 2024 Stack Task | Designed & Developed by kiwisc0de
+                <span>© 2024 Stack Task | Designed & Developed by</span>{" "}
+                <a
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                  }}
+                  rel="noreferrer"
+                  className="kiwisc0de--"
+                  target="_blank"
+                  href="https://www.aykutkav.com"
+                >
+                  kiwisc0de
+                </a>
               </div>
             </div>
           )}
@@ -187,7 +199,19 @@ function Footer() {
                   color: "rgb(112, 112, 112)",
                 }}
               >
-                © 2024 Stack Task | Designed & Developed by kiwisc0de
+                <span>© 2024 Stack Task | Designed & Developed by</span>{" "}
+                <a
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                  }}
+                  rel="noreferrer"
+                  className="kiwisc0de--"
+                  target="_blank"
+                  href="https://www.aykutkav.com"
+                >
+                  kiwisc0de
+                </a>
               </div>
             </div>
           )}

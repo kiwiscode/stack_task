@@ -1387,3 +1387,12 @@ input:focus {
       rgba(255, 255, 255, 0.15) 0px 0px 3px 1px !important;
   }
 }
+
+.kiwisc0de-- {
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.kiwisc0de--:hover {
+  color: #5558fd !important;
+}

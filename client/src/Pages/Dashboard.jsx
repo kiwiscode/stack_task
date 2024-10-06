@@ -1537,11 +1537,27 @@ function Dashboard() {
               style={{
                 fontSize: "12px",
                 flexWrap: "wrap",
-                cursor: "default",
-                color: "rgb(112, 112, 112)",
               }}
             >
-              © 2024 Stack Task | Designed & Developed by kiwisc0de
+              <span
+                style={{
+                  color: "rgb(112, 112, 112)",
+                }}
+              >
+                © 2024 Stack Task | Designed & Developed by
+              </span>{" "}
+              <a
+                style={{
+                  textDecoration: "none",
+                  color: "rgb(112, 112, 112)",
+                }}
+                rel="noreferrer"
+                className="kiwisc0de--"
+                target="_blank"
+                href="https://www.aykutkav.com"
+              >
+                kiwisc0de
+              </a>
             </div>
           </div>{" "}
         </div>
