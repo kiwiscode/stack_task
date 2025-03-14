@@ -15,7 +15,7 @@ const handleProfilePicture = async (req, res) => {
 
     if (image) {
       const imageInfo = await cloudinary.uploader.upload(image, {
-        folder: "Stack Task",
+        folder: process.env.CLOUDINARY_FOLDER_NAME,
         quality: 100,
         format: "auto",
         gravity: "auto",
